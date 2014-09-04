@@ -6,6 +6,8 @@ scalacOptions in (Compile, doc) := Seq("-deprecation", "-feature", "-unchecked")
 
 scalacOptions in (Compile, doc) ++= Opts.doc.title("OPAL - Demos")
 
+libraryDependencies += "org.scalafx"  %% "scalafx"   % "1.0.0-R8"
+
 // We want to use different VM settings for OPAL
 fork in run := true
 
