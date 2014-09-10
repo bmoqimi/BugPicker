@@ -35,21 +35,14 @@ package instructions
  *
  * @author Michael Eichberg
  */
-case class JSR_W(
-    branchoffset: Int)
-        extends JSRInstruction {
+case class JSR_W(branchoffset: Int) extends JSRInstruction {
 
     final def opcode: Opcode = JSR_W.opcode
 
     final def mnemonic: String = "jsr_w"
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC, false)
+    final def length: Int = 5
 
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean): Int =
-        currentPC + 5
 }
 object JSR_W {
 

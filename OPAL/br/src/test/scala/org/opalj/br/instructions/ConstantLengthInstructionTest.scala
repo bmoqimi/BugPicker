@@ -27,22 +27,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.opalj
-package ai
-package project
+package br
+package instructions
+
+import org.scalatest.FunSpec
+import org.scalatest.Matchers
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 
 /**
- * Defines a method to optionally report some result.
+ * Tests for [[ConstantLengthInstruction]]s.
  *
- * Primarily intended to be mixed-in by domains that are used by an `AIProject`.
- *
+ * @author Arne Lottmann
  * @author Michael Eichberg
  */
-trait Report {
+@RunWith(classOf[JUnitRunner])
+class ConstantLengthInstructionTest extends FunSpec with Matchers {
 
-    /**
-     * Returns `Some(&lt;String&gt;)` if there is something to report and `None`
-     * otherwise.
-     */
-    def report: Option[String]
+    describe("putting constant integer values on the stack") {
 
+        it("LoadConstantInstructions should report their correct length") {
+            LoadConstantInstruction(0).length should be(1)
+            LoadConstantInstruction(1).length should be(1)
+            LoadConstantInstruction(2).length should be(1)
+            LoadConstantInstruction(3).length should be(1)
+            LoadConstantInstruction(4).length should be(1)
+            LoadConstantInstruction(5).length should be(1)
+
+            LoadConstantInstruction(6).length should be(2)
+            LoadConstantInstruction(64).length should be(2)
+            LoadConstantInstruction(Byte.MaxValue).length should be(2)
+
+            LoadConstantInstruction(Byte.MaxValue + 1).length should be(3)
+            LoadConstantInstruction(Short.MaxValue / 2).length should be(3)
+            LoadConstantInstruction(Short.MaxValue).length should be(3)
+
+            LoadConstantInstruction(Short.MaxValue + 1).length should be(2)
+            LoadConstantInstruction(Int.MaxValue / 2).length should be(2)
+            LoadConstantInstruction(Int.MaxValue).length should be(2)
+        }
+
+    }
 }

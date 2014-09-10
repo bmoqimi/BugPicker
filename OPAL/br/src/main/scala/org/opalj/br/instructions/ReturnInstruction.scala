@@ -30,26 +30,21 @@ package org.opalj
 package br
 package instructions
 
+import org.opalj.collection.mutable.UShortSet
+
 /**
  * An instruction that returns from a method.
  *
  * @author Michael Eichberg
  */
-abstract class ReturnInstruction extends Instruction {
+abstract class ReturnInstruction extends Instruction with ConstantLengthInstruction {
 
     final def runtimeExceptions: List[ObjectType] =
         ReturnInstruction.runtimeExceptions
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC)
+    final def length: Int = 1
 
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean = false): Int =
-        currentPC + 1
-
-    final def nextInstructions(currentPC: PC, code: Code): PCs =
-        org.opalj.collection.mutable.UShortSet.empty
+    final def nextInstructions(currentPC: PC, code: Code): PCs = UShortSet.empty
 
 }
 /**

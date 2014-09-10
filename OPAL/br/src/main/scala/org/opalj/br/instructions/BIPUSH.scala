@@ -33,6 +33,9 @@ package instructions
 /**
  * Push byte.
  *
+ * @note BIPUSH instructions are cached two BIPUSH instructions that push the same value
+ *      are always reference identical.
+ *
  * @author Michael Eichberg
  */
 class BIPUSH private (
@@ -43,13 +46,7 @@ class BIPUSH private (
 
     final def mnemonic: String = "bipush"
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC, false)
-
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean): Int =
-        currentPC + 2
+    final def length: Int = 2
 
     override def equals(other: Any): Boolean = {
         other match {

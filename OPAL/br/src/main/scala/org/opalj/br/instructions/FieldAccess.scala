@@ -35,7 +35,7 @@ package instructions
  *
  * @author Michael Eichberg
  */
-sealed abstract class FieldAccess extends Instruction {
+sealed abstract class FieldAccess extends Instruction with ConstantLengthInstruction {
 
     def declaringClass: ObjectType
 
@@ -45,13 +45,7 @@ sealed abstract class FieldAccess extends Instruction {
 
     def asVirtualField: VirtualField = VirtualField(declaringClass, name, fieldType)
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC, false)
-
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean): Int =
-        currentPC + 3
+    final def length: Int = 3
 
 }
 

@@ -37,7 +37,9 @@ import org.opalj.collection.mutable.{ UShortSet ⇒ MutableUShortSet }
  *
  * @author Michael Eichberg
  */
-abstract class SimpleConditionalBranchInstruction extends ConditionalBranchInstruction {
+abstract class SimpleConditionalBranchInstruction
+        extends ConditionalBranchInstruction
+        with ConstantLengthInstruction {
 
     def branchoffset: Int
 
@@ -47,17 +49,10 @@ abstract class SimpleConditionalBranchInstruction extends ConditionalBranchInstr
      */
     def operator: String
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC, false)
+    final def length: Int = 3
 
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean = false): Int =
-        currentPC + 3
-
-    final def nextInstructions(currentPC: PC, code: Code): PCs = {
+    final def nextInstructions(currentPC: PC, code: Code): PCs =
         MutableUShortSet(indexOfNextInstruction(currentPC, code), currentPC + branchoffset)
-    }
 
     override def toString(currentPC: Int) =
         getClass.getSimpleName+

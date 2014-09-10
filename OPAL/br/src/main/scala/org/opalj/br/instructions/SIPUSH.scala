@@ -35,22 +35,16 @@ package instructions
  *
  * @author Michael Eichberg
  */
-case class SIPUSH(
-    override val value: Int)
-        extends LoadConstantInstruction[Int] {
+case class SIPUSH(value: Int) extends LoadConstantInstruction[Int] {
 
     final def opcode: Opcode = SIPUSH.opcode
 
     final def mnemonic: String = "sipush"
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC)
+    final def length: Int = 3
 
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean = false): Int =
-        currentPC + 3
 }
+
 object SIPUSH {
 
     final val opcode = 17

@@ -30,6 +30,8 @@ package org.opalj
 package br
 package instructions
 
+import org.opalj.collection.mutable.UShortSet
+
 /**
  * An instruction that stores the top-most stack value in a local variable.
  *
@@ -41,7 +43,32 @@ abstract class StoreLocalVariableInstruction extends Instruction {
 
     def runtimeExceptions: List[ObjectType] = Nil
 
-    final def nextInstructions(currentPC: PC, code: Code): PCs = {
-        collection.mutable.UShortSet(indexOfNextInstruction(currentPC, code))
-    }
+    final def nextInstructions(currentPC: PC, code: Code): PCs =
+        UShortSet(indexOfNextInstruction(currentPC, code))
+
+}
+
+/**
+ * Factory for `StoreLocalVariableInstruction`s.
+ *
+ * @author Arne Lottmann
+ */
+object StoreLocalVariableInstruction {
+
+    /**
+     * Returns the `xStore` instruction that stores the variable at the top of the stack
+     * of the specified type in the local variable at the given index.
+     */
+    def apply(fieldType: FieldType, lvIndex: Int): StoreLocalVariableInstruction =
+        (fieldType.id: @scala.annotation.switch) match {
+            case IntegerType.id ⇒ ISTORE.canonicalRepresentation(lvIndex)
+            case ByteType.id    ⇒ ISTORE.canonicalRepresentation(lvIndex)
+            case ShortType.id   ⇒ ISTORE.canonicalRepresentation(lvIndex)
+            case CharType.id    ⇒ ISTORE.canonicalRepresentation(lvIndex)
+            case BooleanType.id ⇒ ISTORE.canonicalRepresentation(lvIndex)
+            case LongType.id    ⇒ LSTORE.canonicalRepresentation(lvIndex)
+            case FloatType.id   ⇒ FSTORE.canonicalRepresentation(lvIndex)
+            case DoubleType.id  ⇒ DSTORE.canonicalRepresentation(lvIndex)
+            case _              ⇒ ASTORE.canonicalRepresentation(lvIndex)
+        }
 }

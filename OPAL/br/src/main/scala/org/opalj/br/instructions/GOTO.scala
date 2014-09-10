@@ -35,21 +35,13 @@ package instructions
  *
  * @author Michael Eichberg
  */
-case class GOTO(
-    branchoffset: Int)
-        extends UnconditionalBranchInstruction {
+case class GOTO(branchoffset: Int) extends UnconditionalBranchInstruction {
 
     final def opcode: Opcode = GOTO.opcode
 
     final def mnemonic: String = "goto"
 
-    final def indexOfNextInstruction(currentPC: Int, code: Code): Int =
-        indexOfNextInstruction(currentPC, false)
-
-    final def indexOfNextInstruction(
-        currentPC: PC,
-        modifiedByWide: Boolean = false): Int =
-        currentPC + 3
+    final def length: Int = 3
 
 }
 
