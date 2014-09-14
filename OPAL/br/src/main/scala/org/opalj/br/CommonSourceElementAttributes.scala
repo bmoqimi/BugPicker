@@ -48,7 +48,7 @@ trait CommonSourceElementAttributes extends CommonAttributes {
             case Some(annotations) ⇒ annotations
             case None              ⇒ IndexedSeq.empty
         }
-
+        
     def annotations: Annotations =
         runtimeVisibleAnnotations ++ runtimeInvisibleAnnotations
 
