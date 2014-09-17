@@ -39,15 +39,36 @@ import java.io.File
 import java.net.URL
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.ListView
+import org.opalj.br.analyses.AnalysisExecutor
+import org.opalj.br.analyses.Analysis
 
 object bugPicker extends JFXApp {
+
+    object ae extends AnalysisExecutor {
+        val deadCodeAnalysis = new DeadCodeAnalysis
+        lazy val analysis = new Analysis[URL, BasicReport] {
+            override def title: String = deadCodeAnalysis.title
+
+            override def description: String = deadCodeAnalysis.description
+
+            override def analyze(theProject: Project[URL], parameters: Seq[String]) = {
+                val results @ (analysisTime, methodsWithDeadCode) =
+                    deadCodeAnalysis.analyze(theProject, parameters)
+
+                val doc = XHTML.createXHTML(Some(title), DeadCodeAnalysis.resultsAsXHTML(results))
+
+                BasicReport(
+                    "Dead code (number of dead branches: "+methodsWithDeadCode.size+") "+
+                        f"identified in: ${ns2sec(analysisTime)}%2.2f seconds."
+                )
+            }
+        }
+    }
     stage = new PrimaryStage {
         title = "Bug Picker"
-        width = 1900
-        height = 1200
         scene = drawScene()
         def drawScene() = {
-            val thisScene = new Scene(1900, 1200) {
+            val thisScene = new Scene() {
                 root = new BorderPane {
                     top = new VBox {
                         content = createViews()
@@ -75,7 +96,7 @@ object bugPicker extends JFXApp {
 
             protected def call(): String = {
                 //val project = new Project(files(0))
-                val deadCodeAnalysis = new DeadCodeAnalysis()
+                val deadCodeAnalysis = new DeadCodeAnalysis
                 val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty)
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
                 br = BasicReport(
@@ -150,7 +171,7 @@ object bugPicker extends JFXApp {
             if (!files.isEmpty) {
                 if (files(0) != null) {
                     //project = Project(files(0))
-                    project = setupProject(files, List[File]())
+                    project = ae.setupProject(files, List[File]())
                     val iterable = project.statistics.iterator
                     for (item ← iterable) {
                         infoText.text() += item.getKey()+" : "+item.getValue().toString+"\n"
@@ -201,7 +222,7 @@ object bugPicker extends JFXApp {
         var jars: List[java.io.File] = List()
         var sources: java.io.File = null
         var cancelled = false
-        val listview = new ListView[String](new ObservableBuffer[String]())
+        val listview = new ListView[String]()
         val outStage = new Stage {
             outer ⇒
             title = "Load project files"
@@ -263,6 +284,7 @@ object bugPicker extends JFXApp {
                                         }
 
                                         sources = dc.showDialog(vbox.getScene().getWindow())
+                                        listview.items() += sources.toString()
 
                                     }
                                 }
