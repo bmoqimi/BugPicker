@@ -53,12 +53,12 @@ trait Analysis[Source, +AnalysisResult] {
      *
      * @param initProgressManagement A function that is called by the analysis for
      *      each major analysis with the number of steps (Int) that will be performed to
-     *      get a [[ProgressManagement]] object. The analysis will subsequently use that object
-     *      to report status information (related to that part of the analysis)
+     *      get a [[ProgressManagement]] object. The analysis will subsequently use that
+     *      object to report status information (related to that part of the analysis)
      *      and to check the interrupted status.
      *      The number of steps is at lest 1.
-     *      The analysis may call this function multiple times. However, the last `End`
-     *      event always has be signaled using the first `ProgressManagement` object.
+     *      The analysis may call this function multiple times. However, the '''last `End`
+     *      event always has be signaled using the first `ProgressManagement` object'''.
      *      In other words, logically nested calls are supported, but chaining is not.
      *      A legal call sequence could be:
      *      {{{
@@ -80,7 +80,8 @@ trait Analysis[Source, +AnalysisResult] {
      *      }}}
      *
      * @return The analysis' result. If the analysis was aborted/killed the analysis
-     *      should return an appropriate result (which might be `null`).
+     *      should return an appropriate result (which might be `null`) and this
+     *      has to be specifed/documented by the analysis.
      */
     def analyze(
         project: Project[Source],

@@ -33,7 +33,7 @@ package analyses
 /**
  * Used by analyses to report progress. Typically an analysis is expected to report
  * progress every 250 to 2000 milliseconds. It should - however - check every ~100
- * milliseconds the interrupted status.
+ * milliseconds the interrupted status to enable a timely termination.
  *
  * @note Implementations of this class must be thread safe if the analysis is multi-
  *      threaded.
@@ -79,6 +79,9 @@ trait ProgressManagement {
 }
 
 /**
+ * Factory for a function to create a default progress management object that
+ * basically does not track the progress.
+ *
  * @author Michael Eichberg
  */
 object ProgressManagement {

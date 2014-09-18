@@ -46,7 +46,7 @@ trait OneStepAnalysis[Source, +AnalysisResult] extends Analysis[Source, Analysis
     final def analyze(
         project: Project[Source],
         parameters: Seq[String] = List.empty,
-        initProgressManagement: (Int) ⇒ ProgressManagement): AnalysisResult = {
+        initProgressManagement: (Int) ⇒ ProgressManagement = ProgressManagement.None): AnalysisResult = {
 
         val pm = initProgressManagement(1)
         pm.progress(1, EventType.Start, Some(title))
