@@ -27,15 +27,28 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.opalj
-package ai
-package domain
+package br
 
 /**
- * Thrown to indicate that a refinement of some value was not possible.
+ * The computational type category of a value on the operand stack.
+ *
+ * (cf. JVM Spec. 2.11.1 Types and the Java Virtual Machine).
  *
  * @author Michael Eichberg
  */
-case class ImpossibleRefinement(value: AnyRef, refinementGoal: String)
-    extends AIException(
-        s"refining $value failed: $refinementGoal" /*,null, true, false*/
-    )
+sealed abstract class ComputationalTypeCategory(
+        val operandSize: Byte) {
+    /**
+     * Identifies the computational type category.
+     */
+    val id: Byte
+}
+case object Category1ComputationalTypeCategory
+        extends ComputationalTypeCategory(1) {
+    final val id /*: Byte*/ = 1.toByte
+}
+case object Category2ComputationalTypeCategory
+        extends ComputationalTypeCategory(2) {
+    final val id /*: Byte*/ = 2.toByte
+}
+

@@ -27,15 +27,51 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package org.opalj
-package ai
-package domain
+package br
+
+import scala.collection.SortedSet
+
+import org.opalj.collection.UID
+import org.opalj.collection.immutable.UIDSet
+
+import org.opalj.br.instructions._
 
 /**
- * Thrown to indicate that a refinement of some value was not possible.
+ * The computational type of a value on the operand stack.
  *
- * @author Michael Eichberg
+ * (cf. JVM Spec. 2.11.1 Types and the Java Virtual Machine).
  */
-case class ImpossibleRefinement(value: AnyRef, refinementGoal: String)
-    extends AIException(
-        s"refining $value failed: $refinementGoal" /*,null, true, false*/
-    )
+sealed abstract class ComputationalType(
+        computationTypeCategory: ComputationalTypeCategory) {
+
+    def operandSize = computationTypeCategory.operandSize
+
+    def isComputationalTypeReturnAddress: Boolean
+
+    def category = computationTypeCategory.id
+
+}
+case object ComputationalTypeInt
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeFloat
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeReference
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeReturnAddress
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = true
+}
+case object ComputationalTypeLong
+        extends ComputationalType(Category2ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeDouble
+        extends ComputationalType(Category2ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
