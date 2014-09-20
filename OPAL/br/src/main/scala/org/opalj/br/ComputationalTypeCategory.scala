@@ -29,46 +29,26 @@
 package org.opalj
 package br
 
-import java.net.URL
-
-import org.opalj.br.analyses.OneStepAnalysis
-import org.opalj.br.analyses.Project
-import org.opalj.br.analyses.AnalysisExecutor
-import org.opalj.br.analyses.BasicReport
-import org.opalj.br.analyses.OneStepAnalysis
-import org.opalj.br.analyses.Project
-import org.opalj.br.instructions.INVOKEDYNAMIC
-
 /**
- * Prints out the immediately available information about invokedynamic instructions.
+ * The computational type category of a value on the operand stack.
  *
- * @author Arne Lottmann
+ * (cf. JVM Spec. 2.11.1 Types and the Java Virtual Machine).
+ *
+ * @author Michael Eichberg
  */
-object InvokedynamicPrinter extends AnalysisExecutor {
-
-    val analysis = new OneStepAnalysis[URL, BasicReport] {
-
-        override def description: String =
-            "Prints information about invokedynamic instructions."
-
-        def doAnalyze(
-            project: Project[URL],
-            parameters: Seq[String],
-            isInterrupted: () ⇒ Boolean) = {
-            val invokedynamics =
-                for {
-                    classFile ← project.classFiles.par
-                    MethodWithBody(code) ← classFile.methods
-                    INVOKEDYNAMIC(bootstrap, name, descriptor) ← code.instructions
-                } yield {
-                    bootstrap.toJava+"\nArguments:\t"+
-                        bootstrap.bootstrapArguments.mkString("{", ",", "}")+"\nCalling:\t"+
-                        descriptor.toJava(name)
-                }
-
-            BasicReport(
-                invokedynamics.size+" invokedynamic instructions found.\n"+
-                    invokedynamics.mkString("\n", "\n\n", "\n"))
-        }
-    }
+sealed abstract class ComputationalTypeCategory(
+        val operandSize: Byte) {
+    /**
+     * Identifies the computational type category.
+     */
+    val id: Byte
 }
+case object Category1ComputationalTypeCategory
+        extends ComputationalTypeCategory(1) {
+    final val id /*: Byte*/ = 1.toByte
+}
+case object Category2ComputationalTypeCategory
+        extends ComputationalTypeCategory(2) {
+    final val id /*: Byte*/ = 2.toByte
+}
+

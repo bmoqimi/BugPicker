@@ -29,46 +29,49 @@
 package org.opalj
 package br
 
-import java.net.URL
+import scala.collection.SortedSet
 
-import org.opalj.br.analyses.OneStepAnalysis
-import org.opalj.br.analyses.Project
-import org.opalj.br.analyses.AnalysisExecutor
-import org.opalj.br.analyses.BasicReport
-import org.opalj.br.analyses.OneStepAnalysis
-import org.opalj.br.analyses.Project
-import org.opalj.br.instructions.INVOKEDYNAMIC
+import org.opalj.collection.UID
+import org.opalj.collection.immutable.UIDSet
+
+import org.opalj.br.instructions._
 
 /**
- * Prints out the immediately available information about invokedynamic instructions.
+ * The computational type of a value on the operand stack.
  *
- * @author Arne Lottmann
+ * (cf. JVM Spec. 2.11.1 Types and the Java Virtual Machine).
  */
-object InvokedynamicPrinter extends AnalysisExecutor {
+sealed abstract class ComputationalType(
+        computationTypeCategory: ComputationalTypeCategory) {
 
-    val analysis = new OneStepAnalysis[URL, BasicReport] {
+    def operandSize = computationTypeCategory.operandSize
 
-        override def description: String =
-            "Prints information about invokedynamic instructions."
+    def isComputationalTypeReturnAddress: Boolean
 
-        def doAnalyze(
-            project: Project[URL],
-            parameters: Seq[String],
-            isInterrupted: () ⇒ Boolean) = {
-            val invokedynamics =
-                for {
-                    classFile ← project.classFiles.par
-                    MethodWithBody(code) ← classFile.methods
-                    INVOKEDYNAMIC(bootstrap, name, descriptor) ← code.instructions
-                } yield {
-                    bootstrap.toJava+"\nArguments:\t"+
-                        bootstrap.bootstrapArguments.mkString("{", ",", "}")+"\nCalling:\t"+
-                        descriptor.toJava(name)
-                }
+    def category = computationTypeCategory.id
 
-            BasicReport(
-                invokedynamics.size+" invokedynamic instructions found.\n"+
-                    invokedynamics.mkString("\n", "\n\n", "\n"))
-        }
-    }
+}
+case object ComputationalTypeInt
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeFloat
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeReference
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeReturnAddress
+        extends ComputationalType(Category1ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = true
+}
+case object ComputationalTypeLong
+        extends ComputationalType(Category2ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
+}
+case object ComputationalTypeDouble
+        extends ComputationalType(Category2ComputationalTypeCategory) {
+    def isComputationalTypeReturnAddress = false
 }
