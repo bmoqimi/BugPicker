@@ -51,10 +51,17 @@ trait Analysis[Source, +AnalysisResult] {
     /**
      * Analyzes the given project and reports the result(s).
      *
+<<<<<<< HEAD
      * @param initProgressManagement A function that is called by the analysis for
      *      each major analysis with the number of steps (Int) that will be performed to
      *      get a [[ProgressManagement]] object. The analysis will subsequently use that
      *      object to report status information (related to that part of the analysis)
+=======
+     * @param initProgressManagement A function to get a [[org.opalj.br.analyses.ProgressManagement]] object.
+     *      The function is called by the analysis for each major analysis with the
+     *      number of steps (Int) that will be performed . The analysis will subsequently
+     *      use that object to report status information (related to that part of the analysis)
+>>>>>>> e6dac29fc758f33e30c1974a6440ffb56c7a37a2
      *      and to check the interrupted status.
      *      The number of steps is at lest 1.
      *      The analysis may call this function multiple times. However, the '''last `End`
