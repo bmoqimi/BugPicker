@@ -41,6 +41,7 @@ import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.ListView
 import org.opalj.br.analyses.AnalysisExecutor
 import org.opalj.br.analyses.Analysis
+import org.opalj.br.analyses.{ EventType ⇒ ET }
 
 object bugPicker extends JFXApp {
 
@@ -50,9 +51,9 @@ object bugPicker extends JFXApp {
             override def title: String = deadCodeAnalysis.title
 
             override def description: String = deadCodeAnalysis.description
-            
-             //val pouter = initProgressManagement(2)
-            override def analyze(theProject: Project[URL], parameters: Seq[String],initProgressManagement: (Int) ⇒ ProgressManagement ) = {
+
+            //val pouter = initProgressManagement(2)
+            override def analyze(theProject: Project[URL], parameters: Seq[String], initProgressManagement: (Int) ⇒ ProgressManagement) = {
                 val results @ (analysisTime, methodsWithDeadCode) =
                     deadCodeAnalysis.analyze(theProject, parameters, initProgressManagement)
 
@@ -93,30 +94,22 @@ object bugPicker extends JFXApp {
         var files: List[java.io.File] = List()
         var doc: Node = null
         var br: BasicReport = null
+        type Event = org.opalj.br.analyses.Event
         object Worker extends Task(new jfxc.Task[String] {
 
             protected def call(): String = {
                 //val project = new Project(files(0))
                 val deadCodeAnalysis = new DeadCodeAnalysis
-                val initProgressManagement = (x:Int) =>  new ProgressManagement{}
-                val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement )
+                val initProgressManagement: Int ⇒ ProgressManagement = (x) ⇒ {
+                    new ProgressManagement() {
+                        final def progress(step: Int, evt: Event, msg: Option[String]): Unit = { println(x+"with "+msg.toString()) }
+
+                        final def isInterrupted: Boolean = false
+                    }
+                }
+                val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
-                br = BasicReport(
-                    methodsWithDeadCode.toList.sortWith((l, r) ⇒
-                        l.classFile.thisType < r.classFile.thisType ||
-                            (l.classFile.thisType == r.classFile.thisType && (
-                                l.method < r.method || (
-                                    l.method == r.method &&
-                                    l.ctiPC < r.ctiPC
-                                )
-                            ))
-                    ).mkString(
-                        "Dead code (number of dead branches: "+methodsWithDeadCode.size+"): \n",
-                        "\n",
-                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
-                val pouter = initProgressManagement(2)
-                
-                br.message
+                "done"
 
             }
 
@@ -139,12 +132,12 @@ object bugPicker extends JFXApp {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
-                                println( br.message )
                             }
                             case WorkerStateEvent.WORKER_STATE_SCHEDULED ⇒ {
                                 val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
                                 resultWebview.engine.load(loadingURL.toString())
                             }
+                            case _default ⇒ println("running")
                         }
 
                     }
