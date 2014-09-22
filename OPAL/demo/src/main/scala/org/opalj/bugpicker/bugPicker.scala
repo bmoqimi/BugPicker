@@ -103,7 +103,7 @@ object bugPicker extends JFXApp {
                   
                   final def progress(step: Int, evt: Event, msg: Option[String]): Unit = { println(step + "test" + msg.toString())}
 
-            final def isInterrupted: Boolean = false
+                  final def isInterrupted: Boolean = false
                 }
                 val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement )
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
