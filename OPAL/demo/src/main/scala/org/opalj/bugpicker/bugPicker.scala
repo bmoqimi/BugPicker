@@ -40,7 +40,7 @@ import java.net.URL
 import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.ListView
 import org.opalj.br.analyses.AnalysisExecutor
-import org.opalj.br.analyses.Analysis
+import org.opalj.br.analyses._
 
 object bugPicker extends JFXApp {
 
@@ -93,12 +93,18 @@ object bugPicker extends JFXApp {
         var files: List[java.io.File] = List()
         var doc: Node = null
         var br: BasicReport = null
+        //type ET = EventType
         object Worker extends Task(new jfxc.Task[String] {
 
             protected def call(): String = {
                 //val project = new Project(files(0))
                 val deadCodeAnalysis = new DeadCodeAnalysis
-                val initProgressManagement = (x:Int) =>  new ProgressManagement{}
+                val initProgressManagement : (Int) => ProgressManagement = (x) =>  new ProgressManagement {
+                  
+                  final def progress(step: Int, evt: Event, msg: Option[String]): Unit = { println(step + "test" + msg.toString())}
+
+            final def isInterrupted: Boolean = false
+                }
                 val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement )
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
                 br = BasicReport(
@@ -113,9 +119,7 @@ object bugPicker extends JFXApp {
                     ).mkString(
                         "Dead code (number of dead branches: "+methodsWithDeadCode.size+"): \n",
                         "\n",
-                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
-                val pouter = initProgressManagement(2)
-                
+                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))                
                 br.message
 
             }
