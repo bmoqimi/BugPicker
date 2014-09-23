@@ -41,6 +41,8 @@ import scalafx.collections.ObservableBuffer
 import scalafx.scene.control.ListView
 import org.opalj.br.analyses.AnalysisExecutor
 import org.opalj.br.analyses._
+import org.opalj.br.analyses.{ EventType ⇒ ET }
+import scala.collection.mutable.HashMap
 
 object bugPicker extends JFXApp {
 
@@ -50,9 +52,9 @@ object bugPicker extends JFXApp {
             override def title: String = deadCodeAnalysis.title
 
             override def description: String = deadCodeAnalysis.description
-            
-             //val pouter = initProgressManagement(2)
-            override def analyze(theProject: Project[URL], parameters: Seq[String],initProgressManagement: (Int) ⇒ ProgressManagement ) = {
+
+            //val pouter = initProgressManagement(2)
+            override def analyze(theProject: Project[URL], parameters: Seq[String], initProgressManagement: (Int) ⇒ ProgressManagement) = {
                 val results @ (analysisTime, methodsWithDeadCode) =
                     deadCodeAnalysis.analyze(theProject, parameters, initProgressManagement)
 
@@ -93,19 +95,72 @@ object bugPicker extends JFXApp {
         var files: List[java.io.File] = List()
         var doc: Node = null
         var br: BasicReport = null
-        //type ET = EventType
+        var interuptAnalysis = false
+        var initProgressManagement: (Int) ⇒ ProgressManagement = null
+
+        val progressListView = new ListView[String]()
+        val progressListItems = new HashMap[String, String]()
+
+        def showProgressManagement(): Boolean = {
+            var cancelled = false
+            val progStage = new Stage {
+                outer ⇒
+                title = "Analysis Progress "
+                width = 800
+                height = 600
+                scene = new Scene {
+                    root = new BorderPane {
+                        val vbox = new VBox()
+                        vbox.content = {
+                            List(
+                                new Label {
+                                    text = "Click here to Interupt all Analyses"
+                                },
+                                new Button {
+                                    id = "Cancel"
+                                    text = "Cancel"
+                                    onAction = { e: ActionEvent ⇒
+                                        {
+                                            cancelled = true
+                                            outer.close
+                                        }
+                                    }
+                                },
+                                progressListView
+                            )
+                        }
+                        top = vbox
+                    }
+                }
+            }
+            progStage.showAndWait
+            cancelled
+        }
+        val deadCodeAnalysis = new DeadCodeAnalysis
+        initProgressManagement = (x) ⇒ new ProgressManagement {
+
+            final def progress(step: Int, evt: ET.Value, msg: Option[String]): Unit = evt match {
+                case ET.Start ⇒ {
+                    progressListView.items() += step.toString+": "+msg.get
+                    progressListItems += ((step.toString, msg.get))
+                    progressListView.scrollTo(progressListView.getItems.size() - 1)
+                }
+                case ET.End ⇒ {
+                    //progressListView.items() -= step.toString+": "+progressListItems.get(step.toString)
+                    progressListItems.remove(step.toString)
+                }
+
+            }
+
+            final def isInterrupted: Boolean = interuptAnalysis
+        }
+
         object Worker extends Task(new jfxc.Task[String] {
 
             protected def call(): String = {
                 //val project = new Project(files(0))
-                val deadCodeAnalysis = new DeadCodeAnalysis
-                val initProgressManagement : (Int) => ProgressManagement = (x) =>  new ProgressManagement {
-                  
-                  final def progress(step: Int, evt: Event, msg: Option[String]): Unit = { println(step + "test" + msg.toString())}
 
-                  final def isInterrupted: Boolean = false
-                }
-                val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement )
+                val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
                 br = BasicReport(
                     methodsWithDeadCode.toList.sortWith((l, r) ⇒
@@ -119,7 +174,7 @@ object bugPicker extends JFXApp {
                     ).mkString(
                         "Dead code (number of dead branches: "+methodsWithDeadCode.size+"): \n",
                         "\n",
-                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))                
+                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
                 br.message
 
             }
@@ -127,15 +182,6 @@ object bugPicker extends JFXApp {
         })
 
         def runAnalysis(files: List[java.io.File]) {
-            /**
-             * TODO: Prepare some pre-execute hook thing including a loading gif
-             */
-            /*
-            val outps = new ByteArrayOutputStream
-            val pst = new PrintStream(outps)
-            System.setOut(pst)
-            Console.setOut(pst)
-            */
             val et = WorkerStateEvent.ANY
             Worker.handleEvent(et) {
                 event: WorkerStateEvent ⇒
@@ -143,21 +189,28 @@ object bugPicker extends JFXApp {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
-                                println( br.message )
+                                //stage.show
+                                println(br.message)
                             }
-                            case WorkerStateEvent.WORKER_STATE_SCHEDULED ⇒ {
+                            case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
                                 val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
                                 resultWebview.engine.load(loadingURL.toString())
+                            }
+                            case _default ⇒ {
+                                println(event.eventType.toString)
+                                resultWebview.engine.loadContent(event.eventType.toString)
+
                             }
                         }
 
                     }
 
             }
+            interuptAnalysis = false
             val thread = new Thread(Worker)
             thread.setDaemon(true)
             thread.start()
-
+            showProgressManagement
         }
         val analyseButton = new Menu("Analysis") {
             items = List(
