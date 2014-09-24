@@ -43,6 +43,8 @@ import org.opalj.br.analyses.AnalysisExecutor
 import org.opalj.br.analyses._
 import org.opalj.br.analyses.{ EventType ⇒ ET }
 import scala.collection.mutable.HashMap
+import scalafx.application.Platform
+import scalafx.scene.input.KeyCombination
 
 object bugPicker extends JFXApp {
 
@@ -84,6 +86,7 @@ object bugPicker extends JFXApp {
     var loadedFiles: List[List[File]] = null
     var sourceDir: java.io.File = null
     var project: Project[URL] = null
+    var analysisDisabled = true
 
     def createViews() = {
 
@@ -122,6 +125,7 @@ object bugPicker extends JFXApp {
                                     onAction = { e: ActionEvent ⇒
                                         {
                                             cancelled = true
+                                            interuptAnalysis = true
                                             outer.close
                                         }
                                     }
@@ -141,15 +145,23 @@ object bugPicker extends JFXApp {
 
             final def progress(step: Int, evt: ET.Value, msg: Option[String]): Unit = evt match {
                 case ET.Start ⇒ {
-                    progressListView.items() += step.toString+": "+msg.get
-                    progressListItems += ((step.toString, msg.get))
-                    progressListView.scrollTo(progressListView.getItems.size() - 1)
+                    Platform.runLater(new Runnable() {
+                        override def run() {
+                            progressListView.items() += step.toString+": "+msg.get
+                            progressListItems += ((step.toString, msg.get))
+                            progressListView.scrollTo(progressListView.getItems.size() - 1)
+                        }
+                    }
+                    )
                 }
                 case ET.End ⇒ {
-                    //progressListView.items() -= step.toString+": "+progressListItems.get(step.toString)
-                    progressListItems.remove(step.toString)
+                    Platform.runLater(new Runnable() {
+                        override def run() {
+                            progressListView.items() -= step.toString+": "+progressListItems.get(step.toString).get
+                            progressListItems.remove(step.toString)
+                        }
+                    })
                 }
-
             }
 
             final def isInterrupted: Boolean = interuptAnalysis
@@ -190,9 +202,9 @@ object bugPicker extends JFXApp {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
                                 //stage.show
-                                println(br.message)
+                                //TODO: let it run again
                             }
-                            case WorkerStateEvent.WORKER_STATE_SCHEDULED ⇒ {
+                            case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
                                 val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
                                 resultWebview.engine.load(loadingURL.toString())
                             }
@@ -210,14 +222,24 @@ object bugPicker extends JFXApp {
             val thread = new Thread(Worker)
             thread.setDaemon(true)
             thread.start()
+            //Platform.runLater(Worker)
             showProgressManagement
         }
         val analyseButton = new Menu("Analysis") {
             items = List(
                 new MenuItem("run") {
-                    //disable = true
+                    accelerator = KeyCombination("Ctrl+r")
+                    disable = analysisDisabled
                     onAction = {
-                        e: ActionEvent ⇒ runAnalysis(files)
+                        e: ActionEvent ⇒
+                            {
+                                if (!analysisDisabled)
+                                    runAnalysis(files)
+                                else {
+                                    resultWebview.engine.load("Please use File menu to add some class files to analyse first")
+                                    println("ERROR: Please use File menu to add some class files to analyse first")
+                                }
+                            }
                     }
                 }
             )
@@ -252,12 +274,14 @@ object bugPicker extends JFXApp {
             menus = List(
                 new Menu("File") {
                     items = List(
-                        new MenuItem("Open") {
+                        new MenuItem("Open ") {
+                            accelerator = KeyCombination("Ctrl+o")
                             onAction = { e: ActionEvent ⇒
                                 {
                                     loadedFiles = loadProjectStage
                                     if (loadedFiles != null)
                                         if (!loadedFiles(0).isEmpty) {
+                                            analysisDisabled = false
                                             displayProjectInfo(loadedFiles)
                                         }
                                 }
