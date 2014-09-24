@@ -192,7 +192,7 @@ object bugPicker extends JFXApp {
                                 //stage.show
                                 println(br.message)
                             }
-                            case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
+                            case WorkerStateEvent.WORKER_STATE_SCHEDULED ⇒ {
                                 val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
                                 resultWebview.engine.load(loadingURL.toString())
                             }
@@ -256,9 +256,10 @@ object bugPicker extends JFXApp {
                             onAction = { e: ActionEvent ⇒
                                 {
                                     loadedFiles = loadProjectStage
-                                    if (!loadedFiles(0).isEmpty) {
-                                        displayProjectInfo(loadedFiles)
-                                    }
+                                    if (loadedFiles != null)
+                                        if (!loadedFiles(0).isEmpty) {
+                                            displayProjectInfo(loadedFiles)
+                                        }
                                 }
                             }
                         }
@@ -310,8 +311,11 @@ object bugPicker extends JFXApp {
                                         fcb.extensionFilters.addAll(
                                             new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
                                             new FileChooser.ExtensionFilter("Class Files", "*.class"))
-                                        jars :::= List(fcb.showOpenDialog(vbox.getScene().getWindow()))
-                                        listview.items() += jars(0).toString()
+                                        val file = fcb.showOpenDialog(vbox.getScene().getWindow())
+                                        if (file != null) {
+                                            jars :::= List(file)
+                                            listview.items() += jars(0).toString()
+                                        }
 
                                     }
                                 }
@@ -326,9 +330,12 @@ object bugPicker extends JFXApp {
                                         val dc = new DirectoryChooser {
                                             title = "Select Directory"
                                         }
-                                        jars :::= List(dc.showDialog(vbox.getScene().window()))
-                                        listview.items() += jars(0).toString()
+                                        val file = dc.showDialog(vbox.getScene().window())
+                                        if (file != null) {
 
+                                            jars :::= List(file)
+                                            listview.items() += jars(0).toString()
+                                        }
                                     }
                                 }
                             },
@@ -343,10 +350,11 @@ object bugPicker extends JFXApp {
                                         val dc = new DirectoryChooser {
                                             title = "Open Dialog"
                                         }
-
-                                        sources = dc.showDialog(vbox.getScene().getWindow())
-                                        listview.items() += sources.toString()
-
+                                        val file = dc.showDialog(vbox.getScene().window())
+                                        if (file != null) {
+                                            sources = file
+                                            listview.items() += sources.toString()
+                                        }
                                     }
                                 }
                             },
@@ -385,11 +393,11 @@ object bugPicker extends JFXApp {
         }
         outStage.showAndWait
         if (cancelled) {
-            jars = null
+            null
+        } else {
+            val results = List(jars, List(sources))
+            results
         }
-        val results = List(jars, List(sources))
-        results
-
     }
 
 }
