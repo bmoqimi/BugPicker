@@ -55,7 +55,6 @@ object bugPicker extends JFXApp {
 
             override def description: String = deadCodeAnalysis.description
 
-            //val pouter = initProgressManagement(2)
             override def analyze(theProject: Project[URL], parameters: Seq[String], initProgressManagement: (Int) ⇒ ProgressManagement) = {
                 val results @ (analysisTime, methodsWithDeadCode) =
                     deadCodeAnalysis.analyze(theProject, parameters, initProgressManagement)
@@ -103,40 +102,43 @@ object bugPicker extends JFXApp {
 
         val progressListView = new ListView[String]()
         val progressListItems = new HashMap[String, String]()
+        var cancelled = false
 
-        def showProgressManagement(): Boolean = {
-            var cancelled = false
-            val progStage = new Stage {
-                outer ⇒
-                title = "Analysis Progress "
-                width = 800
-                height = 600
-                scene = new Scene {
-                    root = new BorderPane {
-                        val vbox = new VBox()
-                        vbox.content = {
-                            List(
-                                new Label {
-                                    text = "Click here to Interupt all Analyses"
-                                },
-                                new Button {
-                                    id = "Cancel"
-                                    text = "Cancel"
-                                    onAction = { e: ActionEvent ⇒
-                                        {
-                                            cancelled = true
-                                            interuptAnalysis = true
-                                            outer.close
-                                        }
+        lazy val progStage = new Stage {
+            outer ⇒
+            title = "Analysis Progress "
+            width = 800
+            height = 600
+            scene = new Scene {
+                root = new BorderPane {
+                    val vbox = new VBox()
+                    vbox.content = {
+                        List(
+                            new Label {
+                                text = "Click here to Interupt all Analyses"
+                            },
+                            new Button {
+                                id = "Cancel"
+                                text = "Cancel"
+                                onAction = { e: ActionEvent ⇒
+                                    {
+                                        cancelled = true
+                                        interuptAnalysis = true
+                                        outer.close
                                     }
-                                },
-                                progressListView
-                            )
-                        }
-                        top = vbox
+                                }
+                            },
+                            progressListView
+                        )
                     }
+                    top = vbox
                 }
             }
+        }
+
+        def showProgressManagement(): Boolean = {
+            cancelled = false
+            interuptAnalysis = false
             progStage.showAndWait
             cancelled
         }
@@ -159,6 +161,8 @@ object bugPicker extends JFXApp {
                         override def run() {
                             progressListView.items() -= step.toString+": "+progressListItems.get(step.toString).get
                             progressListItems.remove(step.toString)
+                            if (progressListItems.isEmpty)
+                                progStage.close
                         }
                     })
                 }
@@ -170,8 +174,6 @@ object bugPicker extends JFXApp {
         object Worker extends Task(new jfxc.Task[String] {
 
             protected def call(): String = {
-                //val project = new Project(files(0))
-
                 val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
                 doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
                 br = BasicReport(
@@ -201,7 +203,6 @@ object bugPicker extends JFXApp {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
-                                //stage.show
                                 //TODO: let it run again
                             }
                             case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
@@ -222,7 +223,6 @@ object bugPicker extends JFXApp {
             val thread = new Thread(Worker)
             thread.setDaemon(true)
             thread.start()
-            //Platform.runLater(Worker)
             showProgressManagement
         }
         val analyseButton = new Menu("Analysis") {
