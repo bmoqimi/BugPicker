@@ -28,6 +28,7 @@ import org.opalj.br.analyses.BasicReport
 import org.opalj.util.PerformanceEvaluation._
 import scalafx.concurrent.Task
 import javafx.{ concurrent ⇒ jfxc }
+import scalafx.concurrent.Service
 import scala.xml.Node
 import scalafx.event.EventType
 import scalafx.event.EventHandler
@@ -124,6 +125,7 @@ object bugPicker extends JFXApp {
                                     {
                                         cancelled = true
                                         interuptAnalysis = true
+                                        resultWebview.engine.load("Please wait until all analyses are cancelled")
                                         outer.close
                                     }
                                 }
@@ -171,28 +173,31 @@ object bugPicker extends JFXApp {
             final def isInterrupted: Boolean = interuptAnalysis
         }
 
-        object Worker extends Task(new jfxc.Task[String] {
+        //object Worker extends Task(new jfxc.Task[String] {
+        object Worker extends Service(new jfxc.Service[String]() {
 
-            protected def call(): String = {
-                val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
-                doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
-                br = BasicReport(
-                    methodsWithDeadCode.toList.sortWith((l, r) ⇒
-                        l.classFile.thisType < r.classFile.thisType ||
-                            (l.classFile.thisType == r.classFile.thisType && (
-                                l.method < r.method || (
-                                    l.method == r.method &&
-                                    l.ctiPC < r.ctiPC
-                                )
-                            ))
-                    ).mkString(
-                        "Dead code (number of dead branches: "+methodsWithDeadCode.size+"): \n",
-                        "\n",
-                        f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
-                br.message
+            protected def createTask(): jfxc.Task[String] = new jfxc.Task[String] {
+                protected def call(): String = {
+                    val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
+                    doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
+                    br = BasicReport(
+                        methodsWithDeadCode.toList.sortWith((l, r) ⇒
+                            l.classFile.thisType < r.classFile.thisType ||
+                                (l.classFile.thisType == r.classFile.thisType && (
+                                    l.method < r.method || (
+                                        l.method == r.method &&
+                                        l.ctiPC < r.ctiPC
+                                    )
+                                ))
+                        ).mkString(
+                            "Dead code (number of dead branches: "+methodsWithDeadCode.size+"): \n",
+                            "\n",
+                            f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
+                    br.message
+
+                }
 
             }
-
         })
 
         def runAnalysis(files: List[java.io.File]) {
@@ -203,7 +208,6 @@ object bugPicker extends JFXApp {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
-                                //TODO: let it run again
                             }
                             case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
                                 val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
@@ -220,9 +224,10 @@ object bugPicker extends JFXApp {
 
             }
             interuptAnalysis = false
-            val thread = new Thread(Worker)
-            thread.setDaemon(true)
-            thread.start()
+            //val thread = new Thread(Worker)
+            //thread.setDaemon(true)
+            //thread.start()
+            Worker.restart
             showProgressManagement
         }
         val analyseButton = new Menu("Analysis") {
