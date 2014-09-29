@@ -56,6 +56,14 @@ import scalafx.scene.layout.Priority
 import scalafx.scene.layout.ColumnConstraints
 
 object bugPicker extends JFXApp {
+    final val MESSAGE_ANALYSIS_RUNNING =
+        <html>
+            <h1>Analysis is running, please wait...</h1>
+        </html>.toString
+    final val MESSAGE_GENERATING_REPORT =
+        <html>
+            <h1>Analysis is finished.<br/>Generating Report, please wait...</h1>
+        </html>.toString
 
     object ae extends AnalysisExecutor {
         val deadCodeAnalysis = new DeadCodeAnalysis
@@ -92,6 +100,7 @@ object bugPicker extends JFXApp {
             VBox.setVgrow(downSplitpane, Priority.ALWAYS)
             //vbox.children.addAll(createViews)
             GridPane.setVgrow(vbox, Priority.ALWAYS)
+            GridPane.setHgrow(vbox, Priority.ALWAYS)
             gridpane.children.add(vbox)
             gridpane.prefHeight = Double.MaxValue
 
@@ -217,93 +226,6 @@ object bugPicker extends JFXApp {
             }
         })
 
-        def setupListenersOnFinish() {
-            val loadWorker = resultWebview.engine.delegate.getLoadWorker
-            val listener: ChangeListener[State] = new ChangeListener[State] {
-                override def changed(
-                    observable: ObservableValue[_ <: State],
-                    oldValue: State,
-                    newValue: State) {
-
-                    val document = resultWebview.engine.document
-                    val nodes = document.getElementsByTagName("td")
-
-                    def splitParameters(parameters: String): Map[String, String] = {
-                        var map = Map[String, String]()
-                        parameters.split("&").foreach { pair ⇒
-                            val Array(key, value) = pair.split("=", 2)
-                            map += key -> value
-                        }
-                        map
-                    }
-
-                    def listener(node: org.w3c.dom.Node) = new org.w3c.dom.events.EventListener {
-                        override def handleEvent(event: org.w3c.dom.events.Event) {
-                            val sourceValue = node.getAttributes.getNamedItem("data-source").getTextContent
-                            val parameters = splitParameters(sourceValue)
-                            val sourceType = ObjectType(parameters("class"))
-                            val sourceClassFile = project.source(sourceType).map { url ⇒
-                                val inStream = url.openStream
-                                val cf = org.opalj.da.ClassFileReader.ClassFile(() ⇒ inStream)
-                                inStream.close
-                                cf.head
-                            }
-                            if (sourceClassFile.isDefined) {
-                                val methodOption = parameters.get("method")
-                                val pcOption = parameters.get("pc")
-                                val sourceDoc = sourceClassFile.get.toXHTML
-                                sourceWebview.engine.loadContent(sourceDoc.toString)
-                                val worker = sourceWebview.engine.delegate.getLoadWorker
-                                val listener: ChangeListener[State] = new ChangeListener[State] {
-                                    override def changed(
-                                        observable: ObservableValue[_ <: State],
-                                        oldValue: State,
-                                        newValue: State) {
-
-                                        def run(s: String) { sourceWebview.engine.delegate.executeScript(s) }
-                                        if (methodOption.isDefined) {
-                                            val index = methodOption.get
-                                            val openMethodsBlock = "document.getElementsByClassName('methods')[0].getElementsByTagName('details')[0].open = true;"
-                                            val openMethod = s"document.getElementById('m$index').getElementsByTagName('details')[0].open = true;"
-                                            val scrollToTarget =
-                                                if (pcOption.isDefined) {
-                                                    val pc = pcOption.get
-                                                    s"document.getElementById('m${index}_pc$pc').scrollIntoView();"
-                                                } else {
-                                                    s"document.getElementById('m$index').scrollIntoView();"
-                                                }
-
-                                            run(openMethodsBlock)
-                                            run(openMethod)
-                                            run(scrollToTarget)
-                                        } else {
-                                            val scrollToTop = "window.scrollTo(0,0);"
-                                            run(scrollToTop)
-                                        }
-                                        worker.stateProperty.removeListener(this)
-                                    }
-                                }
-                                worker.stateProperty.addListener(listener)
-                            }
-                        }
-                    }
-
-                    for {
-                        i ← (0 to nodes.getLength)
-                        node = nodes.item(i)
-                        if node != null && node.getAttributes() != null &&
-                            node.getAttributes().getNamedItem("data-source") != null
-                    } {
-                        val eventTarget = node.asInstanceOf[org.w3c.dom.events.EventTarget]
-                        eventTarget.addEventListener("click", listener(node), false)
-                    }
-
-                    loadWorker.stateProperty.removeListener(this)
-                }
-            }
-            loadWorker.stateProperty.addListener(listener)
-        }
-
         def runAnalysis(files: List[java.io.File]) {
             val et = WorkerStateEvent.ANY
             Worker.handleEvent(et) {
@@ -311,15 +233,17 @@ object bugPicker extends JFXApp {
                     {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
+                                resultWebview.engine.loadContent(MESSAGE_GENERATING_REPORT)
                                 resultWebview.engine.loadContent(doc.toString)
-                                setupListenersOnFinish()
+                                val l = new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, sourceWebview)
                             }
                             case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
-                                val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
-                                resultWebview.engine.load(loadingURL.toString())
+                                //                                val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
+                                //                                resultWebview.engine.load(loadingURL.toString())
+                                resultWebview.engine.loadContent(MESSAGE_ANALYSIS_RUNNING)
                             }
                             case _default ⇒ {
-                                println(event.eventType.toString)
+                                //                                println(event.eventType.toString)
                                 resultWebview.engine.loadContent(event.eventType.toString)
 
                             }
@@ -373,7 +297,7 @@ object bugPicker extends JFXApp {
                     //infoText.text = project
                 }
                 if (sources(0) != null) {
-                    sourceDir = files(1)
+                    sourceDir = sources(0)
                     infoText.text() += "\n Source directory is set to: "+sourceDir.toString()
                 }
 
