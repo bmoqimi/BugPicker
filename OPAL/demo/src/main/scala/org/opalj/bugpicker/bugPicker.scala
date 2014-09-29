@@ -151,7 +151,7 @@ object bugPicker extends JFXApp {
                                     {
                                         cancelled = true
                                         interuptAnalysis = true
-                                        resultWebview.engine.load("Please wait until all analyses are cancelled")
+                                        resultWebview.engine.loadContent("Please wait until all analyses are cancelled")
                                         outer.close
                                     }
                                 }
@@ -238,12 +238,9 @@ object bugPicker extends JFXApp {
                                 val l = new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, sourceWebview)
                             }
                             case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
-                                //                                val loadingURL = getClass.getResource("/cat_loading.gif").toURI().toURL()
-                                //                                resultWebview.engine.load(loadingURL.toString())
                                 resultWebview.engine.loadContent(MESSAGE_ANALYSIS_RUNNING)
                             }
                             case _default ⇒ {
-                                //                                println(event.eventType.toString)
                                 resultWebview.engine.loadContent(event.eventType.toString)
 
                             }
@@ -270,7 +267,7 @@ object bugPicker extends JFXApp {
                                 if (!analysisDisabled)
                                     runAnalysis(files)
                                 else {
-                                    resultWebview.engine.load("Please use File menu to add some class files to analyse first")
+                                    resultWebview.engine.loadContent("Please use File menu to add some class files to analyse first")
                                     println("ERROR: Please use File menu to add some class files to analyse first")
                                 }
                             }
