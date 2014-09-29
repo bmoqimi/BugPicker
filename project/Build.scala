@@ -130,7 +130,7 @@ object OPALBuild extends Build {
 		base = file("OPAL/demo"),
 		settings = buildSettings ++ 
 			Seq(publishArtifact := false)
-	).dependsOn(av)
+	).dependsOn(av, da)
 	 .configs(IntegrationTest)
 
 	/*****************************************************************************

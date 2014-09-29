@@ -43,6 +43,12 @@ case class Method_Info(
         descriptor_index: Constant_Pool_Index,
         attributes: Attributes) {
 
+    def name(implicit cp: Constant_Pool): String = cp(name_index).toString(cp)
+
+    def descriptor(implicit cp: Constant_Pool): String = cp(descriptor_index).asString
+
+    def toJava(implicit cp: Constant_Pool): String = parseMethodDescriptor(name, descriptor)
+
     def toXHTML(methodIndex: Int)(implicit cp: Constant_Pool): Node = {
         val flags = methodAccessFlagsToString(access_flags)
         val filter_flags =
@@ -57,16 +63,21 @@ case class Method_Info(
                     flags
             }
 
-        val name = cp(name_index).toString(cp)
-        <div class="method" name={ name } flags={ filter_flags }>
+        <div class="method" name={ name } flags={ filter_flags } id={ s"m$methodIndex" }>
             <div class="method_signature">
                 <span class="access_flags">{ flags }</span>
-                <span>{ parseMethodDescriptor(name, cp(descriptor_index).asString) }</span>
+                <span>{ this.toJava }</span>
                 <a href="#" class="tooltip">{ name_index } <span>{ cp(name_index) }</span></a>
             </div>
             { attributesToXHTML(methodIndex) }
         </div>
     }
+
+    def compare(other: Method_Info)(implicit cp: Constant_Pool): Int = {
+        this.toJava compare other.toJava
+    }
+
+    def <(other: Method_Info)(implicit cp: Constant_Pool): Boolean = this.compare(other) < 0
 
     private[this] def attributesToXHTML(methodIndex: Int)(implicit cp: Constant_Pool) = {
         for (attribute ← attributes) yield {

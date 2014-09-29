@@ -117,7 +117,7 @@ case class ClassFile(
     def fieldsToXHTML: Seq[Node] = for (field ← fields) yield field.toXHTML(cp)
 
     def methodsToXHTML: Seq[Node] = {
-        for ((method, index) ← methods.zipWithIndex) yield method.toXHTML(index)
+        for ((method, index) ← methods.sortWith(_ < _).zipWithIndex) yield method.toXHTML(index)
     }
 
     protected def accessFlags: Node = {

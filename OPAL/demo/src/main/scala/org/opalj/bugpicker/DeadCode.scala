@@ -60,6 +60,11 @@ case class DeadCode(
     def deadLineNumber: Option[PC] =
         method.body.get.lineNumber(deadPC)
 
+    private val methodIndex: Int =
+        classFile.methods.sortWith {
+            (a, b) ⇒ a.toJava < b.toJava
+        }.indexOf(method)
+
     def message: String = {
         ctiInstruction match {
             case i: SimpleConditionalBranchInstruction ⇒
@@ -115,16 +120,22 @@ case class DeadCode(
                 <span>{ iNode }</span>
             </span>
 
+        val pcAndLineNumber: String = s"pc=${ctiPC}"+ctiLineNumber.map(l ⇒ s"&line=${l}").getOrElse("")
+
         val node =
             <tr style={
                 val color = accuracy.map(a ⇒ a.asHTMLColor).getOrElse("rgb(255, 126, 3)")
                 s"color:$color;"
             }>
-                <td>
+                <td data-source={ s"class=${classFile.fqn}" }>
                     { XHTML.typeToXHTML(classFile.thisType) }
                 </td>
-                <td>{ XHTML.methodToXHTML(method.name, method.descriptor) }</td>
-                <td>{ pcNode }{ "/ "+ctiLineNumber.getOrElse("N/A") }</td>
+                <td data-source={ s"class=${classFile.fqn}&method=${methodIndex}" }>
+                    { XHTML.methodToXHTML(method.name, method.descriptor) }
+                </td>
+                <td data-source={ s"class=${classFile.fqn}&method=${methodIndex}&"+pcAndLineNumber }>
+                    { pcNode }{ "/ "+ctiLineNumber.getOrElse("N/A") }
+                </td>
                 <td>{ message }</td>
             </tr>
 
