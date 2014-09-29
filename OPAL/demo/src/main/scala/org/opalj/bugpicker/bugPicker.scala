@@ -91,6 +91,7 @@ object bugPicker extends JFXApp {
             VBox.setVgrow(downSplitpane, Priority.ALWAYS)
             //vbox.children.addAll(createViews)
             GridPane.setVgrow(vbox, Priority.ALWAYS)
+            GridPane.setHgrow(vbox, Priority.ALWAYS)
             gridpane.children.add(vbox)
             gridpane.prefHeight = Double.MaxValue
 
