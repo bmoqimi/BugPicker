@@ -53,6 +53,7 @@ import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import scalafx.scene.layout.GridPane
 import scalafx.scene.layout.Priority
+import scalafx.scene.layout.ColumnConstraints
 
 object bugPicker extends JFXApp {
 
@@ -407,8 +408,8 @@ object bugPicker extends JFXApp {
     }
 
     /**
-     * The open File dialog box. Preferrebly this should change into a dialog box
-     *  instead of a whole stage and scene
+     * The open File dialog box.
+     * The source and class files are added here.
      */
     def loadProjectStage: List[List[File]] = {
         var jars: List[java.io.File] = List()
@@ -416,110 +417,101 @@ object bugPicker extends JFXApp {
         var cancelled = false
         val listview = new ListView[String]()
         val outStage = new Stage {
-            outer ⇒
-            title = "Load project files"
-            width = 800
-            height = 400
-            scene = new Scene {
-                root = new BorderPane {
-                    //top = 
-                    val vbox = new VBox()
-                    vbox.content = {
-                        //content = 
-                        List(
-                            new Label {
-                                text = "Select files(jars/.class/directory) to be analysed"
-                            },
-                            new Button {
-                                id = "Select a Jar/Class File"
-                                text = "Add Jar/Class Files"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-                                        val fcb = new FileChooser {
-                                            title = "Open Dialog"
-                                        }
-                                        fcb.extensionFilters.addAll(
-                                            new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
-                                            new FileChooser.ExtensionFilter("Class Files", "*.class"))
-                                        val file = fcb.showOpenDialog(vbox.getScene().getWindow())
-                                        if (file != null) {
-                                            jars :::= List(file)
-                                            listview.items() += jars(0).toString()
-                                        }
-
-                                    }
-                                }
-                            },
-                            new Label {
-                                text = "Choose the  class directory containing jar of class files"
-                            },
-                            new Button {
-                                text = "Open"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-                                        val dc = new DirectoryChooser {
-                                            title = "Select Directory"
-                                        }
-                                        val file = dc.showDialog(vbox.getScene().window())
-                                        if (file != null) {
-
-                                            jars :::= List(file)
-                                            listview.items() += jars(0).toString()
-                                        }
-                                    }
-                                }
-                            },
-                            new Label {
-                                text = "select the source directory of your project"
-                            },
-
-                            new Button {
-                                text = "Open"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-                                        val dc = new DirectoryChooser {
-                                            title = "Open Dialog"
-                                        }
-                                        val file = dc.showDialog(vbox.getScene().window())
-                                        if (file != null) {
-                                            sources = file
-                                            listview.items() += sources.toString()
-                                        }
-                                    }
-                                }
-                            },
-
-                            listview,
-
-                            new Button {
-                                text = "Cancel"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-                                        cancelled = true
-                                        outer.close
-                                    }
-                                }
-
-                            },
-                            new Button {
-                                text = "Finish"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-
-                                        outer.close()
-                                    }
-                                }
-
-                            }
-
-                        )
+            outer ⇒ {
+                title = "Load project files"
+                width = 600
+                height = 300
+                val loadScene = new Scene
+                val gp = new GridPane
+                val l1 = new Label
+                l1.text = "Select files(jars/.class/directory) to be analysed"
+                val jarButton = new Button
+                jarButton.id = "Select a Jar/Class File"
+                jarButton.text = "Add Jar/Class Files"
+                jarButton.onAction = { e: ActionEvent ⇒
+                    {
+                        val fcb = new FileChooser {
+                            title = "Open Dialog"
+                        }
+                        fcb.extensionFilters.addAll(
+                            new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
+                            new FileChooser.ExtensionFilter("Class Files", "*.class"))
+                        val file = fcb.showOpenDialog(gp.getScene().getWindow())
+                        if (file != null) {
+                            jars :::= List(file)
+                            listview.items() += jars(0).toString()
+                        }
 
                     }
-                    top = vbox
-
                 }
-            }
+                val l2 = new Label
+                l2.text = "Choose the  class directory containing jar of class files"
+                val dirButton = new Button {}
+                dirButton.text = "Open"
+                dirButton.onAction = { e: ActionEvent ⇒
+                    {
+                        val dc = new DirectoryChooser {
+                            title = "Select Directory"
+                        }
+                        val file = dc.showDialog(gp.getScene().window())
+                        if (file != null) {
 
+                            jars :::= List(file)
+                            listview.items() += jars(0).toString()
+                        }
+                    }
+                }
+                val l3 = new Label
+                l3.text = "select the source directory of your project"
+                val sourceButton = new Button
+                sourceButton.text = "Open"
+                sourceButton.onAction = { e: ActionEvent ⇒
+                    {
+                        val dc = new DirectoryChooser {
+                            title = "Open Dialog"
+                        }
+                        val file = dc.showDialog(gp.getScene().window())
+                        if (file != null) {
+                            sources = file
+                            listview.items() += sources.toString()
+                        }
+                    }
+                }
+                val cancelButton = new Button
+                cancelButton.text = "Cancel"
+                cancelButton.onAction = { e: ActionEvent ⇒
+                    {
+                        cancelled = true
+                        outer.close
+                    }
+                }
+                val finishButton = new Button
+                finishButton.text = "Finish"
+                finishButton.onAction = { e: ActionEvent ⇒
+                    {
+
+                        outer.close()
+                    }
+                }
+                //val columnCons1 = new ColumnConstraints(400)
+                //val columnCons2 = new ColumnConstraints(200)
+                val vbox = new VBox {
+                    content = List(jarButton, dirButton, sourceButton)
+                }
+                GridPane.setHgrow(listview, Priority.ALWAYS)
+                GridPane.setHgrow(vbox, Priority.NEVER)
+                gp.add(listview, 1, 1, 2, 3)
+                //gp.add(jarButton, 3, 1)
+                //gp.add(dirButton, 3, 2)
+                //gp.add(sourceButton, 3, 3)
+                gp.add(vbox, 3, 1, 2, 3)
+                gp.add(finishButton, 1, 4)
+                gp.add(cancelButton, 2, 4)
+                //gp.columnConstraints.addAll(columnCons1, columnCons2)
+                loadScene.root = gp
+                scene = loadScene
+
+            }
         }
         outStage.showAndWait
         if (cancelled) {
