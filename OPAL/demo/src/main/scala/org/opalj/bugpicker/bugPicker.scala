@@ -281,11 +281,15 @@ object bugPicker extends JFXApp {
         def displayProjectInfo(files: List[List[java.io.File]]) {
             val files = loadedFiles(0)
             val sources = loadedFiles(1)
+            val libs = loadedFiles(2)
             infoText.text() = ""
             if (!files.isEmpty) {
                 if (files(0) != null) {
-                    //project = Project(files(0))
-                    project = ae.setupProject(files, List[File]())
+                    if (libs(0) == null) {
+                        project = ae.setupProject(files, List[File]())
+                    } else {
+                        project = ae.setupProject(files, libs)
+                    }
                     val iterable = project.statistics.iterator
                     for (item ← iterable) {
                         infoText.text() += item.getKey()+" : "+item.getValue().toString+"\n"
@@ -335,6 +339,7 @@ object bugPicker extends JFXApp {
     def loadProjectStage: List[List[File]] = {
         var jars: List[java.io.File] = List()
         var sources: java.io.File = null
+        var libs: java.io.File = null
         var cancelled = false
         val listview = new ListView[String]()
         val outStage = new Stage {
@@ -348,7 +353,7 @@ object bugPicker extends JFXApp {
                 l1.text = "Select files(jars/.class/directory) to be analysed"
                 val jarButton = new Button
                 jarButton.id = "Select a Jar/Class File"
-                jarButton.text = "Add Jar/Class Files"
+                jarButton.text = "Add Jar/Class Files to be Analysed"
                 jarButton.onAction = { e: ActionEvent ⇒
                     {
                         val fcb = new FileChooser {
@@ -365,10 +370,29 @@ object bugPicker extends JFXApp {
 
                     }
                 }
+                val libsButton = new Button
+                libsButton.id = "Select a Jar/Class Library"
+                libsButton.text = "Add Jar/Class File as a Library"
+                libsButton.onAction = { e: ActionEvent ⇒
+                    {
+                        val fcb = new FileChooser {
+                            title = "Open Dialog"
+                        }
+                        fcb.extensionFilters.addAll(
+                            new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
+                            new FileChooser.ExtensionFilter("Class Files", "*.class"))
+                        val file = fcb.showOpenDialog(gp.getScene().getWindow())
+                        if (file != null) {
+                            libs = file
+                            listview.items() += libs.toString()
+                        }
+
+                    }
+                }
                 val l2 = new Label
                 l2.text = "Choose the  class directory containing jar of class files"
                 val dirButton = new Button {}
-                dirButton.text = "Open"
+                dirButton.text = "Add Directory to be Analysed"
                 dirButton.onAction = { e: ActionEvent ⇒
                     {
                         val dc = new DirectoryChooser {
@@ -385,7 +409,7 @@ object bugPicker extends JFXApp {
                 val l3 = new Label
                 l3.text = "select the source directory of your project"
                 val sourceButton = new Button
-                sourceButton.text = "Open"
+                sourceButton.text = "Add source Directory (Optional)"
                 sourceButton.onAction = { e: ActionEvent ⇒
                     {
                         val dc = new DirectoryChooser {
@@ -417,7 +441,7 @@ object bugPicker extends JFXApp {
                 //val columnCons1 = new ColumnConstraints(400)
                 //val columnCons2 = new ColumnConstraints(200)
                 val vbox = new VBox {
-                    content = List(jarButton, dirButton, sourceButton)
+                    content = List(jarButton, dirButton, sourceButton, libsButton)
                 }
                 GridPane.setHgrow(listview, Priority.ALWAYS)
                 GridPane.setHgrow(vbox, Priority.NEVER)
@@ -438,7 +462,7 @@ object bugPicker extends JFXApp {
         if (cancelled) {
             null
         } else {
-            val results = List(jars, List(sources))
+            val results = List(jars, List(sources), List(libs))
             results
         }
     }
