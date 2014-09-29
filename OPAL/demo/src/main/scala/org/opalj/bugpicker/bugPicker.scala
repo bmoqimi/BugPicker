@@ -46,6 +46,10 @@ import org.opalj.br.analyses.{ EventType ⇒ ET }
 import scala.collection.mutable.HashMap
 import scalafx.application.Platform
 import scalafx.scene.input.KeyCombination
+import scalafx.scene.layout.Priority
+import scalafx.scene.layout.GridPane
+import scalafx.scene.layout.Pane
+import scalafx.scene.layout.Priority
 
 object bugPicker extends JFXApp {
 
@@ -69,17 +73,26 @@ object bugPicker extends JFXApp {
             }
         }
     }
+    val downSplitpane = new SplitPane {}
     stage = new PrimaryStage {
         title = "Bug Picker"
         scene = drawScene()
         def drawScene() = {
-            val thisScene = new Scene() {
-                root = new BorderPane {
-                    top = new VBox {
-                        content = createViews()
-                    }
-                }
+            val thisScene = new Scene() {}
+            val gridpane = new GridPane {
+
             }
+            val vbox = new VBox {
+                content = createViews()
+            }
+            VBox.setVgrow(downSplitpane, Priority.ALWAYS)
+            //vbox.children.addAll(createViews)
+            GridPane.setVgrow(vbox, Priority.ALWAYS)
+            gridpane.children.add(vbox)
+            gridpane.prefHeight = Double.MaxValue
+
+            thisScene.root = gridpane
+
             thisScene
         }
     }
@@ -298,10 +311,7 @@ object bugPicker extends JFXApp {
                 analyseButton
             )
         }
-
-        val downSplitpane = new SplitPane {}
         downSplitpane.getItems().addAll(resultWebview, sourceWebview)
-
         List(menuBar, infoText, downSplitpane)
     }
 
