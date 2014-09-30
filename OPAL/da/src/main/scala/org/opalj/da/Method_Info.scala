@@ -49,6 +49,9 @@ case class Method_Info(
 
     def toJava(implicit cp: Constant_Pool): String = parseMethodDescriptor(name, descriptor)
 
+    /**
+     * @param definingTypeFQN The FQN of the class defining this field.
+     */
     def toXHTML(methodIndex: Int)(implicit cp: Constant_Pool): Node = {
         val flags = methodAccessFlagsToString(access_flags)
         val filter_flags =

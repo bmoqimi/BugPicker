@@ -59,30 +59,7 @@ class DefaultDomainTest extends FlatSpec with Matchers {
         val project = org.opalj.br.TestSupport.createJREProject
 
         val (message, source) =
-            interpret(project, classOf[DefaultDomain[_]], false, None, 10)
-<<<<<<< HEAD
-
-        if (source.nonEmpty)
-            fail(message+" (details: "+source+")")
-        else
-            info(message)
-    }
-
-    it should ("be able to perform an abstract interpretation of the OPAL snapshot") in {
-        val reader = new Java8FrameworkWithCaching(new BytecodeInstructionsCache)
-        import reader.AllClassFiles
-        val classFilesFolder = org.opalj.bi.TestSupport.locateTestResources("classfiles", "bi")
-        val opalJARs = classFilesFolder.listFiles(new java.io.FilenameFilter() {
-            def accept(dir: java.io.File, name: String) = name.startsWith("OPAL-")
-        })
-        info(opalJARs.mkString("analyzing the following jars: ", ", ", ""))
-        opalJARs.size should not be (0)
-        val project = Project(AllClassFiles(opalJARs))
-
-        val (message, source) =
-            interpret(project, classOf[DefaultDomain[_]], false, None, 10)
-=======
->>>>>>> e6dac29fc758f33e30c1974a6440ffb56c7a37a2
+            interpret(project, classOf[DefaultDomain[_]], false, None, 3d)
 
         if (source.nonEmpty)
             fail(message+" (details: "+source+")")
