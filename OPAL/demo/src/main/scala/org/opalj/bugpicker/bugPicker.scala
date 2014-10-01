@@ -286,9 +286,11 @@ object bugPicker extends JFXApp {
             Worker.restart
             showProgressManagement
         }
-        val analyseButton = new Menu("Analysis") {
+        val analyseButton = new Menu("_Analysis") {
+            mnemonicParsing = true
             items = List(
-                new MenuItem("run") {
+                new MenuItem("_Run") {
+                    mnemonicParsing = true
                     accelerator = KeyCombination("Shortcut+R")
                     disable = analysisDisabled
                     onAction = {
@@ -336,9 +338,11 @@ object bugPicker extends JFXApp {
 
         val menuBar = new MenuBar {
             menus = List(
-                new Menu("File") {
+                new Menu("_File") {
+                    mnemonicParsing = true
                     items = List(
-                        new MenuItem("Open ") {
+                        new MenuItem("_Open") {
+                            mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
                             onAction = { e: ActionEvent ⇒
                                 {
