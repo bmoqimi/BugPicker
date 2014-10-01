@@ -127,7 +127,6 @@ object bugPicker extends JFXApp {
             thisScene
         }
     }
-    var loadedFiles: List[List[File]] = null
     var sourceDir: java.io.File = null
     var project: Project[URL] = null
     var analysisDisabled = true
@@ -286,6 +285,7 @@ object bugPicker extends JFXApp {
             Worker.restart
             showProgressManagement
         }
+
         val analyseButton = new Menu("_Analysis") {
             mnemonicParsing = true
             items = List(
@@ -293,24 +293,22 @@ object bugPicker extends JFXApp {
                     mnemonicParsing = true
                     accelerator = KeyCombination("Shortcut+R")
                     disable = analysisDisabled
-                    onAction = {
-                        e: ActionEvent ⇒
-                            {
-                                if (!analysisDisabled)
-                                    runAnalysis(files)
-                                else {
-                                    resultWebview.engine.loadContent("Please use File menu to add some class files to analyse first")
-                                    println("ERROR: Please use File menu to add some class files to analyse first")
-                                }
-                            }
+                    onAction = { e: ActionEvent ⇒
+                        if (!analysisDisabled)
+                            runAnalysis(files)
+                        else {
+                            resultWebview.engine.loadContent("Please use File menu to add some class files to analyse first")
+                            println("ERROR: Please use File menu to add some class files to analyse first")
+                        }
                     }
                 }
             )
         }
+
         /**
          * * We update the text area after the user finishes choosing source and class folders
          */
-        def displayProjectInfo(files: List[List[java.io.File]]) {
+        def displayProjectInfo(loadedFiles: List[List[java.io.File]]) {
             val files = loadedFiles(0)
             val sources = loadedFiles(1)
             val libs = loadedFiles(2)
@@ -345,30 +343,21 @@ object bugPicker extends JFXApp {
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
                             onAction = { e: ActionEvent ⇒
-                                {
-                                    val tempFiles = loadProjectStage
-                                    if (tempFiles != null) {
-                                        loadedFiles = tempFiles
-                                        if (loadedFiles != null)
-                                            if (!loadedFiles(0).isEmpty) {
-                                                analysisDisabled = false
-                                                val displayInfo = new Runnable() {
-                                                    override def run() {
-                                                        displayProjectInfo(loadedFiles)
-                                                    }
-                                                }
-                                                resultWebview.engine.loadContent(MESSAGE_LOADING_STARTED)
-                                                val infoThread = new Thread(displayInfo)
-                                                infoThread.setDaemon(true)
-                                                infoThread.start
-
-                                            }
+                                val tempFiles = loadProjectStage
+                                if (tempFiles != null && !tempFiles(0).isEmpty) {
+                                    analysisDisabled = false
+                                    val displayInfo = new Runnable() {
+                                        override def run() {
+                                            displayProjectInfo(tempFiles)
+                                        }
                                     }
+                                    resultWebview.engine.loadContent(MESSAGE_LOADING_STARTED)
+                                    val infoThread = new Thread(displayInfo)
+                                    infoThread.setDaemon(true)
+                                    infoThread.start
                                 }
                             }
-                        }
-
-                    )
+                        })
                 },
                 analyseButton
             )
@@ -382,216 +371,7 @@ object bugPicker extends JFXApp {
      * The source and class files are added here.
      */
     def loadProjectStage: List[List[File]] = {
-        var jars: List[java.io.File] = List()
-        var sources: java.io.File = null
-        var libs: java.io.File = null
-        var cancelled = false
-        val jarListview = new ListView[String]()
-        val libsListview = new ListView[String]()
-        val sourceListview = new ListView[String]()
-        val outStage = new Stage {
-            outer ⇒ {
-                title = "Load project files"
-                width = 800
-                height = 600
-                maxWidth = 800
-                maxHeight = 600
-                val loadScene = new Scene
-                val alloverVbox = new VBox
-                val l1 = new Label
-                l1.text = "Select files(jars/.class/directory) to be analysed"
-                val jarButton = new Button
-                jarButton.id = "Select a Jar/Class File"
-                jarButton.text = "Add Jar/Class Files to be Analysed"
-                jarButton.onAction = { e: ActionEvent ⇒
-                    {
-                        val fcb = new FileChooser {
-                            title = "Open Dialog"
-                        }
-                        fcb.extensionFilters.addAll(
-                            new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
-                            new FileChooser.ExtensionFilter("Class Files", "*.class"))
-                        val file = fcb.showOpenDialog(alloverVbox.getScene().getWindow())
-                        if (file != null) {
-                            jars :::= List(file)
-                            jarListview.items() += jars(0).toString()
-                        }
-
-                    }
-                }
-                val jarRemove = new Button
-                jarRemove.id = "remove jar/class File/Directory"
-                jarRemove.text = "Remove"
-                jarRemove.onAction = { e: ActionEvent ⇒
-                    {
-                        val removed = jarListview.selectionModel().getSelectedItem()
-                        val temp = jars
-                        jars = List[java.io.File]()
-                        temp.foreach {
-                            file ⇒
-                                {
-                                    if (file.toString != removed) {
-                                        jars :::= List(file)
-                                    }
-                                }
-                        }
-                        jarListview.items() -= removed
-                    }
-                }
-                val l2 = new Label
-                l2.text = "Choose the  class directory containing jar of class files"
-                val dirButton = new Button {}
-                dirButton.text = "Add Directory to be Analysed"
-                dirButton.onAction = { e: ActionEvent ⇒
-                    {
-                        val dc = new DirectoryChooser {
-                            title = "Select Directory"
-                        }
-                        val file = dc.showDialog(alloverVbox.getScene().window())
-                        if (file != null) {
-
-                            jars :::= List(file)
-                            jarListview.items() += jars(0).toString()
-                        }
-                    }
-                }
-                val libsButton = new Button
-                libsButton.id = "Select a Jar/Class Library"
-                libsButton.text = "Add Jar File as a Library (Optional)"
-                libsButton.onAction = { e: ActionEvent ⇒
-                    {
-                        val fcb = new FileChooser {
-                            title = "Open Dialog"
-                        }
-                        fcb.extensionFilters.addAll(
-                            new FileChooser.ExtensionFilter("Jar Files", "*.jar"),
-                            new FileChooser.ExtensionFilter("Class Files", "*.class"))
-                        val file = fcb.showOpenDialog(alloverVbox.getScene().getWindow())
-                        if (file != null) {
-                            libs = file
-                            libsListview.items() += libs.toString()
-                        }
-
-                    }
-                }
-
-                val libsRemove = new Button
-                libsRemove.id = "Remove Library"
-                libsRemove.text = "Remove"
-                libsRemove.onAction = { e: ActionEvent ⇒
-                    {
-                        libsListview.items() -= libs.toString()
-                        libs = null
-                    }
-                }
-                val l3 = new Label
-                l3.text = "select the source directory of your project"
-                val sourceButton = new Button
-                sourceButton.text = "Add source Directory (Optional)"
-                sourceButton.onAction = { e: ActionEvent ⇒
-                    {
-                        val dc = new DirectoryChooser {
-                            title = "Open Dialog"
-                        }
-                        val file = dc.showDialog(alloverVbox.getScene().window())
-                        if (file != null) {
-                            sources = file
-                            sourceListview.items() += sources.toString()
-                        }
-                    }
-                }
-                val sourceRemove = new Button
-                sourceRemove.id = "Remove Source"
-                sourceRemove.text = "Remove"
-                sourceRemove.onAction = { e: ActionEvent ⇒
-                    {
-                        sourceListview.items() -= sources.toString()
-                        sources = null
-                    }
-                }
-                val cancelButton = new Button
-                cancelButton.text = "Cancel"
-                cancelButton.onAction = { e: ActionEvent ⇒
-                    {
-                        cancelled = true
-                        outer.close
-                    }
-                }
-                val finishButton = new Button
-                finishButton.text = "Finish"
-                finishButton.onAction = { e: ActionEvent ⇒
-                    {
-
-                        outer.close()
-                    }
-                }
-
-                loadScene.stylesheets.add(getClass.getResource("borderPane.css").toURI().toURL().toString())
-                // Jar/Class set of button
-                val classButtonVbox = new VBox
-                val classHbox = new HBox
-                classButtonVbox.children.add(jarButton)
-                classButtonVbox.children.add(jarRemove)
-                classButtonVbox.children.add(dirButton)
-                classButtonVbox.spacing = 20
-                classHbox.styleClass.add("bordered")
-                HBox.setHgrow(jarListview, Priority.ALWAYS)
-                classHbox.children.add(jarListview)
-                classHbox.children.add(classButtonVbox)
-
-                // Library set of Buttons
-                val libsButtonvbox = new VBox
-                val libsHbox = new HBox
-                libsButtonvbox.children.add(libsButton)
-                libsButtonvbox.children.add(libsRemove)
-                libsButtonvbox.spacing = 20
-                libsHbox.styleClass.add("bordered")
-                HBox.setHgrow(libsListview, Priority.ALWAYS)
-                libsHbox.children.add(libsListview)
-                libsHbox.children.add(libsButtonvbox)
-
-                // Source set of buttons
-                val sourceButtonvbox = new VBox
-                val sourceHbox = new HBox
-                sourceButtonvbox.children.add(sourceButton)
-                sourceButtonvbox.children.add(sourceRemove)
-                sourceButtonvbox.spacing = 20
-                sourceHbox.styleClass.add("bordered")
-                HBox.setHgrow(sourceListview, Priority.ALWAYS)
-                HBox.setHgrow(sourceButtonvbox, Priority.NEVER)
-                sourceHbox.children.add(sourceListview)
-                sourceHbox.children.add(sourceButtonvbox)
-
-                val finishButtonshbox = new HBox
-                finishButtonshbox.alignment = Pos.CENTER
-                VBox.setMargin(finishButton, new Insets(20))
-                VBox.setMargin(cancelButton, new Insets(20))
-                finishButtonshbox.padding = new Insets(6)
-                finishButtonshbox.styleClass.add("bordered")
-                finishButtonshbox.children.add(finishButton)
-                finishButtonshbox.children.add(cancelButton)
-
-                classHbox.padding = new Insets(6)
-                libsHbox.padding = new Insets(6)
-                sourceHbox.padding = new Insets(6)
-
-                alloverVbox.children.addAll(classHbox, libsHbox, sourceHbox, finishButtonshbox)
-
-                loadScene.root = alloverVbox
-                scene = loadScene
-
-            }
-        }
-        outStage.initModality(Modality.WINDOW_MODAL)
-        outStage.initOwner(stage.scene.window.value)
-        outStage.initStyle(StageStyle.UTILITY)
-        outStage.centerOnScreen
-        outStage.showAndWait
-        if (cancelled) {
-            null
-        } else {
-            val results = List(jars, List(sources), List(libs))
-            results
-        }
+        val dialog = new LoadProjectDialog()
+        dialog.show(stage)
     }
 }
