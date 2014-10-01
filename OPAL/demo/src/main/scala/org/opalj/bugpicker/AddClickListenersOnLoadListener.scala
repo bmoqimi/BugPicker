@@ -1,13 +1,14 @@
 package org.opalj
 package bugpicker
 
+import java.net.URL
+
+import org.opalj.br.analyses.Project
+
 import javafx.beans.value.ChangeListener
+import javafx.beans.value.ObservableValue
 import javafx.concurrent.Worker.State
 import scalafx.scene.web.WebView
-import javafx.beans.value.ObservableValue
-import org.opalj.br.ObjectType
-import org.opalj.br.analyses.Project
-import java.net.URL
 
 /**
  * Adds onClick listeners on `td` elements in `resultWebview`'s document (once it has finished loading).
@@ -28,13 +29,13 @@ class AddClickListenersOnLoadListener(
         if (newValue != State.SUCCEEDED) return
 
         val document = resultWebview.engine.document
-        val nodes = document.getElementsByTagName("td")
+        val nodes = document.getElementsByTagName("span")
 
         for {
             i ← (0 to nodes.getLength)
             node = nodes.item(i)
             if node != null && node.getAttributes() != null &&
-                node.getAttributes().getNamedItem("data-source") != null
+                node.getAttributes().getNamedItem("data-class") != null
         } {
             val eventTarget = node.asInstanceOf[org.w3c.dom.events.EventTarget]
             val listener = new DOMNodeClickListener(project, sourceDir, node, sourceWebview)

@@ -43,6 +43,7 @@ import org.opalj.br.instructions.ConditionalBranchInstruction
 import org.opalj.br.instructions.SimpleConditionalBranchInstruction
 import org.opalj.br.instructions.CompoundConditionalBranchInstruction
 import scala.xml.Unparsed
+import scala.xml.Text
 
 case class DeadCode(
         classFile: ClassFile,
@@ -115,26 +116,31 @@ case class DeadCode(
             }
 
         val pcNode =
-            <span class="tooltip">
+            <span class="tooltip" data-class={ classFile.fqn } data-method={ methodIndex.toString } data-pc={ ctiPC.toString }>
                 { ctiPC }
                 <span>{ iNode }</span>
             </span>
-
-        val pcAndLineNumber: String = s"pc=${ctiPC}"+ctiLineNumber.map(l ⇒ s"&line=${l}").getOrElse("")
 
         val node =
             <tr style={
                 val color = accuracy.map(a ⇒ a.asHTMLColor).getOrElse("rgb(255, 126, 3)")
                 s"color:$color;"
             }>
-                <td data-source={ s"class=${classFile.fqn}" }>
-                    { XHTML.typeToXHTML(classFile.thisType) }
-                </td>
-                <td data-source={ s"class=${classFile.fqn}&method=${methodIndex}" }>
-                    { XHTML.methodToXHTML(method.name, method.descriptor) }
-                </td>
-                <td data-source={ s"class=${classFile.fqn}&method=${methodIndex}&"+pcAndLineNumber }>
-                    { pcNode }{ "/ "+ctiLineNumber.getOrElse("N/A") }
+                <td><span data-class={ classFile.fqn }>
+                        { XHTML.typeToXHTML(classFile.thisType) }
+                    </span></td>
+                <td><span data-class={ classFile.fqn } data-method={ methodIndex.toString }>
+                        { XHTML.methodToXHTML(method.name, method.descriptor) }
+                    </span></td>
+                <td>
+                    { pcNode }{
+                        Text("/ ") ++
+                            ctiLineNumber.map(ln ⇒
+                                <span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ ln.toString }>
+                                    { ln }
+                                </span>
+                            ).getOrElse(<span>"N/A"</span>)
+                    }
                 </td>
                 <td>{ message }</td>
             </tr>

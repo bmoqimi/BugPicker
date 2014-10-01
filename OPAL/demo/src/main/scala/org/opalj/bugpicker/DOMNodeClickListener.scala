@@ -24,14 +24,13 @@ class DOMNodeClickListener(
         def toXHTML: scala.xml.Node
     }
 
-    def splitParameters(parameters: String): Map[String, String] = {
-        var map = Map[String, String]()
-        parameters.split("&").foreach { pair ⇒
-            val Array(key, value) = pair.split("=", 2)
-            map += key -> value
-        }
-        map
-    }
+    private val nodeAttributes = node.getAttributes
+
+    private def getAttribute(name: String): Option[String] =
+        if (nodeAttributes.getNamedItem(name) != null)
+            Some(nodeAttributes.getNamedItem(name).getTextContent)
+        else
+            None
 
     def classFileOrSourceFile(
         sourceDir: java.io.File,
@@ -48,7 +47,8 @@ class DOMNodeClickListener(
         val sourcePackagePath = theType.packageName
 
         val sourceFile: Option[File] =
-            if (cf.sourceFile.isDefined) {
+            if (!lineOption.isDefined) None
+            else if (cf.sourceFile.isDefined) {
                 Some(new File(sourceDir, sourcePackagePath+"/"+cf.sourceFile.get))
             } else {
                 val name = theType.simpleName
@@ -72,14 +72,13 @@ class DOMNodeClickListener(
     }
 
     override def handleEvent(event: org.w3c.dom.events.Event) {
-        val sourceValue = node.getAttributes.getNamedItem("data-source").getTextContent
-        val parameters = splitParameters(sourceValue)
-        val sourceType = ObjectType(parameters("class"))
-        val lineOption = parameters.get("line")
+        val className = getAttribute("data-class").get
+        val sourceType = ObjectType(className)
+        val lineOption = getAttribute("data-line")
         val sourceFile: Option[Renderable] = classFileOrSourceFile(sourceDir, project, sourceType, lineOption)
         if (sourceFile.isDefined) {
-            val methodOption = parameters.get("method")
-            val pcOption = parameters.get("pc")
+            val methodOption = getAttribute("data-method")
+            val pcOption = getAttribute("data-pc")
             val sourceDoc = sourceFile.get.toXHTML
             sourceWebview.engine.loadContent(sourceDoc.toString)
             new JumpToProblemListener(sourceWebview, methodOption, pcOption, lineOption)
