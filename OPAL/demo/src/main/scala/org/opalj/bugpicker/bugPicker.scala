@@ -54,15 +54,12 @@ import javafx.beans.value.ObservableValue
 import scalafx.scene.layout.GridPane
 import scalafx.scene.layout.Priority
 import scalafx.scene.layout.ColumnConstraints
+import scala.io.Source
 
 object bugPicker extends JFXApp {
     final val MESSAGE_ANALYSIS_RUNNING =
         <html>
-            <h1>Analysis is running, please wait...</h1>
-        </html>.toString
-    final val MESSAGE_GENERATING_REPORT =
-        <html>
-            <h1>Analysis is finished.<br/>Generating Report, please wait...</h1>
+            <h1>Running analysis and generating report&hellip;</h1>
         </html>.toString
 
     object ae extends AnalysisExecutor {
@@ -205,7 +202,7 @@ object bugPicker extends JFXApp {
             protected def createTask(): jfxc.Task[String] = new jfxc.Task[String] {
                 protected def call(): String = {
                     val results @ (analysisTime, methodsWithDeadCode) = deadCodeAnalysis.analyze(project, Seq.empty, initProgressManagement)
-                    doc = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
+                    doc = createHTMLReport(results)
                     br = BasicReport(
                         methodsWithDeadCode.toList.sortWith((l, r) ⇒
                             l.classFile.thisType < r.classFile.thisType ||
@@ -226,6 +223,20 @@ object bugPicker extends JFXApp {
             }
         })
 
+        def createHTMLReport(results: (Long, Iterable[DeadCode])): Node = {
+            var report = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
+
+            val additionalStyles = process(getClass.getResourceAsStream("report.styles.css")) {
+                Source.fromInputStream(_).mkString
+            }
+            val stylesNode = <style type="text/css">{ scala.xml.Unparsed(additionalStyles) }</style>
+
+            val newHead = <head>{ (report \ "head" \ "_") }{ stylesNode }</head>
+
+            new scala.xml.Elem(report.prefix, report.label, report.attributes, report.scope, false,
+                (newHead ++ (report \ "body"): _*))
+        }
+
         def runAnalysis(files: List[java.io.File]) {
             val et = WorkerStateEvent.ANY
             Worker.handleEvent(et) {
@@ -233,7 +244,6 @@ object bugPicker extends JFXApp {
                     {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
-                                resultWebview.engine.loadContent(MESSAGE_GENERATING_REPORT)
                                 resultWebview.engine.loadContent(doc.toString)
                                 val l = new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, sourceWebview)
                             }

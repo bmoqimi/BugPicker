@@ -1,0 +1,8 @@
+[data-class] {
+	text-decoration: underline;
+	color: blue;
+}
+
+[data-class]:hover { 
+	cursor: pointer;
+}
