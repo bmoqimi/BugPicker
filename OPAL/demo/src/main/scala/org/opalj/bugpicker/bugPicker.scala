@@ -336,7 +336,7 @@ object bugPicker extends JFXApp {
             val files = loadedFiles(0)
             val sources = loadedFiles(1)
             val libs = loadedFiles(2)
-            infoText.text() = ""
+            Platform.runLater(infoText.text() = "")
             if (!files.isEmpty) {
                 if (files(0) != null) {
                     if (libs(0) == null) {
