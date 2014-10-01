@@ -80,7 +80,7 @@ object bugPicker extends JFXApp {
         </html>.toString
     final val MESSAGE_LOADING_STARTED =
         <html>
-            <h1>Please wait while the project is loaded . . . </h1>
+            <h1>Please wait while the project is loaded&hellip;</h1>
         </html>.toString
 
     object ae extends AnalysisExecutor {
@@ -148,8 +148,9 @@ object bugPicker extends JFXApp {
         val progressListView = new ListView[String]()
         val progressListItems = new HashMap[String, String]()
         var cancelled = false
+        var progStage: Stage = null
 
-        lazy val progStage = new Stage {
+        def progressStage = new Stage {
             outer ⇒
             title = "Analysis Progress "
             width = 800
@@ -202,6 +203,7 @@ object bugPicker extends JFXApp {
         }
 
         def showProgressManagement(): Boolean = {
+            progStage = progressStage
             cancelled = false
             interuptAnalysis = false
             progStage.initModality(Modality.WINDOW_MODAL)
