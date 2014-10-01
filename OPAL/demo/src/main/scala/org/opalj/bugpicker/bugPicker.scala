@@ -3,7 +3,6 @@ package bugpicker
 
 import scalafx.application.JFXApp
 import scalafx.scene.Scene
-//import scalafx.geometry.Insets
 import scalafx.scene.layout.{ BorderPane, VBox }
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.scene.control.{ TitledPane, TextArea, ToolBar, Button }
@@ -57,6 +56,7 @@ import scalafx.scene.layout.ColumnConstraints
 import scalafx.scene.layout.StackPane
 import scalafx.scene.layout.HBox
 import javafx.geometry.Insets
+import scalafx.geometry.Pos
 
 object bugPicker extends JFXApp {
     final val MESSAGE_ANALYSIS_RUNNING =
@@ -70,6 +70,18 @@ object bugPicker extends JFXApp {
     final val MESSAGE_ANALYSIS_FINISHED =
         <html>
             <h1>Click on any line to browse the relevant source code or bytecode</h1>
+        </html>.toString
+    final val MESSAGE_LOADING_FINISHED =
+        <html>
+            <h1>Now use the menu bar (or Ctrl + r ) to run the analysis</h1>
+        </html>.toString
+    final val MESSAGE_APP_STARTED =
+        <html>
+            <h1>Use the menu bar (or Ctrl + o ) load your project</h1>
+        </html>.toString
+    final val MESSAGE_LOADING_STARTED =
+        <html>
+            <h1>Please wait while the project is loaded . . . </h1>
         </html>.toString
 
     object ae extends AnalysisExecutor {
@@ -144,13 +156,12 @@ object bugPicker extends JFXApp {
             width = 800
             height = 600
             scene = new Scene {
-                root = new BorderPane {
-                    val vbox = new VBox()
+                val bp = new BorderPane {}
+                /* val vbox = new VBox()
+                    vbox.alignment = Pos.CENTER
                     vbox.content = {
                         List(
-                            new Label {
-                                text = "Click here to Interupt all Analyses"
-                            },
+                            progressListView,
                             new Button {
                                 id = "Cancel"
                                 text = "Cancel"
@@ -162,12 +173,32 @@ object bugPicker extends JFXApp {
                                         outer.close
                                     }
                                 }
-                            },
-                            progressListView
+                                padding = new Insets(15)
+                                alignment = Pos.CENTER
+                            }
                         )
                     }
-                    top = vbox
+                    * */
+
+                val but = new Button {
+                    id = "Cancel"
+                    text = "Cancel"
+                    onAction = { e: ActionEvent ⇒
+                        {
+                            cancelled = true
+                            interuptAnalysis = true
+                            resultWebview.engine.loadContent("Please wait until all analyses are cancelled")
+                            outer.close
+                        }
+                    }
                 }
+                BorderPane.setAlignment(but, Pos.CENTER)
+                BorderPane.setMargin(but, new Insets(4))
+                //but.alignment = Pos.CENTER
+                //bp.padding = new Insets(10)
+                bp.top = progressListView
+                bp.center = but
+                root = bp
             }
         }
 
@@ -299,6 +330,7 @@ object bugPicker extends JFXApp {
                     for (item ← iterable) {
                         Platform.runLater(infoText.text() += item.getKey()+" : "+item.getValue().toString+"\n")
                     }
+                    Platform.runLater(resultWebview.engine.loadContent(MESSAGE_LOADING_FINISHED))
                 }
                 if (sources(0) != null) {
                     sourceDir = sources(0)
@@ -327,6 +359,7 @@ object bugPicker extends JFXApp {
                                                         displayProjectInfo(loadedFiles)
                                                     }
                                                 }
+                                                resultWebview.engine.loadContent(MESSAGE_LOADING_STARTED)
                                                 val infoThread = new Thread(displayInfo)
                                                 infoThread.setDaemon(true)
                                                 infoThread.start
@@ -513,11 +546,20 @@ object bugPicker extends JFXApp {
                 sourceHbox.children.add(sourceListview)
                 sourceHbox.children.add(sourceButtonvbox)
 
+                val finishButtonshbox = new HBox
+                finishButtonshbox.alignment = Pos.CENTER
+                VBox.setMargin(finishButton, new Insets(20))
+                VBox.setMargin(cancelButton, new Insets(20))
+                finishButtonshbox.padding = new Insets(6)
+                finishButtonshbox.styleClass.add("bordered")
+                finishButtonshbox.children.add(finishButton)
+                finishButtonshbox.children.add(cancelButton)
+
                 classHbox.padding = new Insets(6)
                 libsHbox.padding = new Insets(6)
                 sourceHbox.padding = new Insets(6)
 
-                alloverVbox.children.addAll(classHbox, libsHbox, sourceHbox)
+                alloverVbox.children.addAll(classHbox, libsHbox, sourceHbox, finishButtonshbox)
 
                 loadScene.root = alloverVbox
                 scene = loadScene
