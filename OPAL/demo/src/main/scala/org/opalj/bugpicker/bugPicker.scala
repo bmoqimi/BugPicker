@@ -156,33 +156,10 @@ object bugPicker extends JFXApp {
             width = 800
             height = 600
             scene = new Scene {
-                val bp = new BorderPane {}
-                /* val vbox = new VBox()
-                    vbox.alignment = Pos.CENTER
-                    vbox.content = {
-                        List(
-                            progressListView,
-                            new Button {
-                                id = "Cancel"
-                                text = "Cancel"
-                                onAction = { e: ActionEvent ⇒
-                                    {
-                                        cancelled = true
-                                        interuptAnalysis = true
-                                        resultWebview.engine.loadContent("Please wait until all analyses are cancelled")
-                                        outer.close
-                                    }
-                                }
-                                padding = new Insets(15)
-                                alignment = Pos.CENTER
-                            }
-                        )
-                    }
-                    * */
-
                 val but = new Button {
                     id = "Cancel"
                     text = "Cancel"
+                    minWidth = 80
                     onAction = { e: ActionEvent ⇒
                         {
                             cancelled = true
@@ -192,13 +169,12 @@ object bugPicker extends JFXApp {
                         }
                     }
                 }
+                root = new BorderPane {
+                    center = progressListView
+                    bottom = but
+                }
                 BorderPane.setAlignment(but, Pos.CENTER)
-                BorderPane.setMargin(but, new Insets(4))
-                //but.alignment = Pos.CENTER
-                //bp.padding = new Insets(10)
-                bp.top = progressListView
-                bp.center = but
-                root = bp
+                BorderPane.setMargin(but, new Insets(10))
             }
         }
 
