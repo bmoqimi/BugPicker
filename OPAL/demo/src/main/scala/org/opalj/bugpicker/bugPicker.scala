@@ -424,6 +424,8 @@ object bugPicker extends JFXApp {
                 jarRemove.text = "Remove"
                 jarRemove.onAction = { e: ActionEvent ⇒
                     {
+                			val removed = jarListview.selectionModel().getSelectedItem()
+                			jars 
                     }
                 }
 
