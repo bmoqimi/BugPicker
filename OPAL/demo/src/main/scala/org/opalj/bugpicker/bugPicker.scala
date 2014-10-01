@@ -352,7 +352,7 @@ object bugPicker extends JFXApp {
                 }
                 if (sources(0) != null) {
                     sourceDir = sources(0)
-                    Platform.runLater(infoText.text() += "\n Source directory is set to: "+sourceDir.toString())
+                    Platform.runLater(infoText.text() += "\nSource directory is set to: "+sourceDir.toString())
                 }
 
             }
