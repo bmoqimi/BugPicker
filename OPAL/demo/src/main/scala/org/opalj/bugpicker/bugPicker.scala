@@ -424,11 +424,37 @@ object bugPicker extends JFXApp {
                 jarRemove.text = "Remove"
                 jarRemove.onAction = { e: ActionEvent ⇒
                     {
-                			val removed = jarListview.selectionModel().getSelectedItem()
-                			jars 
+                        val removed = jarListview.selectionModel().getSelectedItem()
+                        val temp = jars
+                        jars = List[java.io.File]()
+                        temp.foreach {
+                            file ⇒
+                                {
+                                    if (file.toString != removed) {
+                                        jars :::= List(file)
+                                    }
+                                }
+                        }
+                        jarListview.items() -= removed
                     }
                 }
+                val l2 = new Label
+                l2.text = "Choose the  class directory containing jar of class files"
+                val dirButton = new Button {}
+                dirButton.text = "Add Directory to be Analysed"
+                dirButton.onAction = { e: ActionEvent ⇒
+                    {
+                        val dc = new DirectoryChooser {
+                            title = "Select Directory"
+                        }
+                        val file = dc.showDialog(alloverVbox.getScene().window())
+                        if (file != null) {
 
+                            jars :::= List(file)
+                            jarListview.items() += jars(0).toString()
+                        }
+                    }
+                }
                 val libsButton = new Button
                 libsButton.id = "Select a Jar/Class Library"
                 libsButton.text = "Add Jar File as a Library (Optional)"
@@ -448,28 +474,14 @@ object bugPicker extends JFXApp {
 
                     }
                 }
+
                 val libsRemove = new Button
                 libsRemove.id = "Remove Library"
                 libsRemove.text = "Remove"
                 libsRemove.onAction = { e: ActionEvent ⇒
                     {
-                    }
-                }
-                val l2 = new Label
-                l2.text = "Choose the  class directory containing jar of class files"
-                val dirButton = new Button {}
-                dirButton.text = "Add Directory to be Analysed"
-                dirButton.onAction = { e: ActionEvent ⇒
-                    {
-                        val dc = new DirectoryChooser {
-                            title = "Select Directory"
-                        }
-                        val file = dc.showDialog(alloverVbox.getScene().window())
-                        if (file != null) {
-
-                            jars :::= List(file)
-                            jarListview.items() += jars(0).toString()
-                        }
+                        libsListview.items() -= libs.toString()
+                        libs = null
                     }
                 }
                 val l3 = new Label
@@ -493,6 +505,8 @@ object bugPicker extends JFXApp {
                 sourceRemove.text = "Remove"
                 sourceRemove.onAction = { e: ActionEvent ⇒
                     {
+                        sourceListview.items() -= sources.toString()
+                        sources = null
                     }
                 }
                 val cancelButton = new Button
