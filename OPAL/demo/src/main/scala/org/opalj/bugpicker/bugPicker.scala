@@ -72,11 +72,11 @@ object bugPicker extends JFXApp {
         </html>.toString
     final val MESSAGE_LOADING_FINISHED =
         <html>
-            <h1>Now use the menu bar (or Ctrl + r ) to run the analysis</h1>
+            <h1>Now use the menu bar (or Ctrl+R/Cmd+R) to run the analysis</h1>
         </html>.toString
     final val MESSAGE_APP_STARTED =
         <html>
-            <h1>Use the menu bar (or Ctrl + o ) load your project</h1>
+            <h1>Use the menu bar (or Ctrl+O/Cmd+O) load your project</h1>
         </html>.toString
     final val MESSAGE_LOADING_STARTED =
         <html>
@@ -313,7 +313,7 @@ object bugPicker extends JFXApp {
         val analyseButton = new Menu("Analysis") {
             items = List(
                 new MenuItem("run") {
-                    accelerator = KeyCombination("Ctrl+r")
+                    accelerator = KeyCombination("Shortcut+R")
                     disable = analysisDisabled
                     onAction = {
                         e: ActionEvent ⇒
@@ -363,7 +363,7 @@ object bugPicker extends JFXApp {
                 new Menu("File") {
                     items = List(
                         new MenuItem("Open ") {
-                            accelerator = KeyCombination("Ctrl+o")
+                            accelerator = KeyCombination("Shortcut+O")
                             onAction = { e: ActionEvent ⇒
                                 {
                                     val tempFiles = loadProjectStage
