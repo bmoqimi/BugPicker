@@ -55,6 +55,8 @@ import scalafx.scene.layout.GridPane
 import scalafx.scene.layout.Priority
 import scalafx.scene.layout.ColumnConstraints
 import scala.io.Source
+import scalafx.stage.Modality
+import scalafx.stage.StageStyle
 
 object bugPicker extends JFXApp {
     final val MESSAGE_ANALYSIS_RUNNING =
@@ -164,6 +166,10 @@ object bugPicker extends JFXApp {
         def showProgressManagement(): Boolean = {
             cancelled = false
             interuptAnalysis = false
+            progStage.initModality(Modality.WINDOW_MODAL)
+            progStage.initOwner(stage.scene.window.value)
+            progStage.initStyle(StageStyle.UTILITY)
+            progStage.centerOnScreen
             progStage.showAndWait
             cancelled
         }
@@ -468,6 +474,10 @@ object bugPicker extends JFXApp {
 
             }
         }
+        outStage.initModality(Modality.WINDOW_MODAL)
+        outStage.initOwner(stage.scene.window.value)
+        outStage.initStyle(StageStyle.UTILITY)
+        outStage.centerOnScreen
         outStage.showAndWait
         if (cancelled) {
             null
