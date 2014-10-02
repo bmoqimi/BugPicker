@@ -1,3 +1,5 @@
+import AssemblyKeys._
+
 name := "Demo"
 
 version := "ALWAYS-SNAPSHOT"
@@ -16,3 +18,11 @@ fork in run := true
 javaOptions in run := Seq("-Xmx2G", "-Xms1024m", "-XX:NewRatio=1", "-XX:SurvivorRatio=8", "-XX:+UseParallelGC", "-XX:+AggressiveOpts", "-Xnoclassgc")
 
 scalaVersion := "2.11.1"
+
+assemblySettings
+
+jarName in assembly := "bugpicker.jar"
+
+test in assembly := {}
+
+mainClass in assembly := Some("org.opalj.bugpicker.bugPicker")
