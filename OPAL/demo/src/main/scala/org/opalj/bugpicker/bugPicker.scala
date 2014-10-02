@@ -230,7 +230,7 @@ object bugPicker extends JFXApp {
                                 (l.classFile.thisType == r.classFile.thisType && (
                                     l.method < r.method || (
                                         l.method == r.method &&
-                                        l.ctiPC < r.ctiPC
+                                        l.pc < r.pc
                                     )
                                 ))
                         ).mkString(
@@ -244,7 +244,7 @@ object bugPicker extends JFXApp {
             }
         })
 
-        def createHTMLReport(results: (Long, Iterable[DeadCode])): Node = {
+        def createHTMLReport(results: (Long, Iterable[BugReport])): Node = {
             var report = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
 
             val additionalStyles = process(getClass.getResourceAsStream("report.styles.css")) {
