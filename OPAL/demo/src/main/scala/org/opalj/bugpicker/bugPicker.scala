@@ -103,30 +103,35 @@ object bugPicker extends JFXApp {
             }
         }
     }
+
+    def maximizeOnCurrentScreen(stage: Stage) {
+        val currentScreen = Screen.primary //screensForRectangle(stage.x(), stage.y(), stage.width(), stage.height())(0)
+        val currentScreenDimensions = currentScreen.getVisualBounds()
+        stage.x = currentScreenDimensions.minX
+        stage.y = currentScreenDimensions.minY
+        stage.width = currentScreenDimensions.width
+        stage.height = currentScreenDimensions.height
+    }
+
     val downSplitpane = new SplitPane {}
     stage = new PrimaryStage {
         title = "Bug Picker"
-        scene = drawScene()
-        def drawScene() = {
-            val thisScene = new Scene() {}
-            val gridpane = new GridPane {
-
+        scene = new Scene {
+            root = new GridPane {
+                prefHeight = Double.MaxValue
+                content = new VBox {
+                    self ⇒
+                    GridPane.setVgrow(self, Priority.ALWAYS)
+                    GridPane.setHgrow(self, Priority.ALWAYS)
+                    content = createViews()
+                }
+                VBox.setVgrow(downSplitpane, Priority.ALWAYS)
             }
-            val vbox = new VBox {
-                content = createViews()
-            }
-            VBox.setVgrow(downSplitpane, Priority.ALWAYS)
-            //vbox.children.addAll(createViews)
-            GridPane.setVgrow(vbox, Priority.ALWAYS)
-            GridPane.setHgrow(vbox, Priority.ALWAYS)
-            gridpane.children.add(vbox)
-            gridpane.prefHeight = Double.MaxValue
-
-            thisScene.root = gridpane
-
-            thisScene
         }
     }
+
+    maximizeOnCurrentScreen(stage)
+
     var sourceDir: java.io.File = null
     var project: Project[URL] = null
     var analysisDisabled = true
