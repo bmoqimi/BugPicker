@@ -37,7 +37,9 @@ class DOMNodeClickListener(
         project: Project[URL],
         sourceDir: File,
         node: Node,
-        sourceWebview: WebView) extends EventListener {
+        bytecodeWebview: WebView,
+        sourceWebview: WebView,
+        focus: WebView ⇒ Unit) extends EventListener {
 
     private final val MESSAGE_NO_BYTECODE_FOUND =
         <html><h1>No source- or bytecode for this class could be found!</h1></html>
@@ -100,21 +102,31 @@ class DOMNodeClickListener(
         val methodOption = getAttribute("data-method")
         val pcOption = getAttribute("data-pc")
         val lineOption = getAttribute("data-line")
+        val (loadBytecode, loadSource) = getAttribute("data-load") match {
+            case Some("bytecode")   ⇒ (true, false)
+            case Some("sourcecode") ⇒ (false, true)
+            case _                  ⇒ (true, true)
+        }
 
-        val content: scala.xml.Node =
-            if (pcOption.isDefined) { // we absolutely want source code
-                decompileClassFile(project, sourceType).map(_.toXHTML).getOrElse(MESSAGE_NO_BYTECODE_FOUND)
+        var noSourceFound = false
+        if (loadSource) {
+            val sourceFile = findSourceFile(sourceDir, project, sourceType, lineOption)
+            if (sourceFile.isDefined) {
+                sourceWebview.engine.loadContent(sourceFile.get.toXHTML.toString)
+                new JumpToProblemListener(webview = sourceWebview, methodOption = methodOption, pcOption = None, lineOption = lineOption)
+                if (!loadBytecode) focus(sourceWebview)
             } else {
-                val sourceFile = findSourceFile(sourceDir, project, sourceType, lineOption)
-                if (sourceFile.isDefined) {
-                    sourceFile.get.toXHTML
-                } else {
-                    showWarning(s"Could not find source code for type $className.\nShowing bytecode instead.")
-                    decompileClassFile(project, sourceType).map(_.toXHTML).getOrElse(MESSAGE_NO_BYTECODE_FOUND)
-                }
+                noSourceFound = true
+                showWarning(s"Could not find source code for type $className.\nShowing bytecode instead.")
+                sourceWebview.engine.loadContent("")
             }
-        sourceWebview.engine.loadContent(content.toString)
-        new JumpToProblemListener(sourceWebview, methodOption, pcOption, lineOption)
+        }
+        if (loadBytecode || noSourceFound) {
+            val classFile = decompileClassFile(project, sourceType)
+            bytecodeWebview.engine.loadContent(classFile.map(_.toXHTML).getOrElse(MESSAGE_NO_BYTECODE_FOUND).toString)
+            new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
+            if (!loadSource || noSourceFound) focus(bytecodeWebview)
+        }
     }
 
     def showWarning(msg: String) {

@@ -60,6 +60,9 @@ import scalafx.scene.layout.StackPane
 import scalafx.scene.layout.HBox
 import javafx.geometry.Insets
 import scalafx.geometry.Pos
+import scalafx.stage.Screen
+import scalafx.scene.control.TabPane
+import scalafx.scene.control.Tab
 
 object bugPicker extends JFXApp {
     final val MESSAGE_ANALYSIS_RUNNING =
@@ -142,7 +145,19 @@ object bugPicker extends JFXApp {
             text = "Please use the toolbar to load the project"
         }
         val resultWebview = new WebView()
+        val tabbedArea = new TabPane()
         val sourceWebview = new WebView()
+        val bytecodeWebview = new WebView()
+        tabbedArea += new Tab {
+            text = "Bytecode"
+            content = bytecodeWebview
+            closable = false
+        }
+        tabbedArea += new Tab {
+            text = "Source code"
+            content = sourceWebview
+            closable = false
+        }
         var files: List[java.io.File] = List()
         var doc: Node = null
         var br: BasicReport = null
@@ -271,15 +286,18 @@ object bugPicker extends JFXApp {
                         event.eventType match {
                             case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
                                 resultWebview.engine.loadContent(doc.toString)
+                                new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, bytecodeWebview, sourceWebview, { view ⇒
+                                    if (view == bytecodeWebview) tabbedArea.selectionModel().select(0)
+                                    else if (view == sourceWebview) tabbedArea.selectionModel().select(1)
+                                })
+                                bytecodeWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
                                 sourceWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
-                                val l = new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, sourceWebview)
                             }
                             case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
                                 resultWebview.engine.loadContent(MESSAGE_ANALYSIS_RUNNING)
                             }
                             case _default ⇒ {
                                 resultWebview.engine.loadContent(event.eventType.toString)
-
                             }
                         }
 
@@ -368,7 +386,7 @@ object bugPicker extends JFXApp {
                 analyseButton
             )
         }
-        downSplitpane.getItems().addAll(resultWebview, sourceWebview)
+        downSplitpane.getItems().addAll(resultWebview, tabbedArea)
         List(menuBar, infoText, downSplitpane)
     }
 

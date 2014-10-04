@@ -151,10 +151,12 @@ case class DeadCode(
             }
 
         val pcNode =
-            <span class="tooltip" data-class={ classFile.fqn } data-method={ methodIndex.toString } data-pc={ ctiPC.toString }>
+            <span class="tooltip" data-class={ classFile.fqn } data-method={ methodIndex.toString } data-pc={ ctiPC.toString } data-line={ line.map(_.toString).getOrElse("") } data-load="bytecode">
                 { ctiPC }
                 <span>{ iNode }</span>
             </span>
+
+        val methodLine: String = method.body.flatMap(_.firstLineNumber.map(_.toString)).getOrElse("")
 
         val node =
             <tr style={
@@ -164,17 +166,15 @@ case class DeadCode(
                 <td><span data-class={ classFile.fqn }>
                         { XHTML.typeToXHTML(classFile.thisType) }
                     </span></td>
-                <td><span data-class={ classFile.fqn } data-method={ methodIndex.toString }>
+                <td><span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ methodLine }>
                         { XHTML.methodToXHTML(method.name, method.descriptor) }
                     </span></td>
                 <td>
                     { pcNode }{
                         Text("/ ") ++
-                            ctiLineNumber.map(ln ⇒
-                                <span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ ln.toString }>
-                                    { ln }
-                                </span>
-                            ).getOrElse(<span>"N/A"</span>)
+                            line.map(ln ⇒
+                                <span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ ln.toString } data-pc={ pc.toString } data-load="sourcecode">{ ln }</span>
+                            ).getOrElse(Text("N/A"))
                     }
                 </td>
                 <td>{ message }</td>
