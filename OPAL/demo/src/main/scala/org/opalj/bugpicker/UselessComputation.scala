@@ -43,6 +43,7 @@ import org.opalj.br.instructions.ConditionalBranchInstruction
 import org.opalj.br.instructions.SimpleConditionalBranchInstruction
 import org.opalj.br.instructions.CompoundConditionalBranchInstruction
 import scala.xml.Unparsed
+import scala.xml.Text
 
 case class UselessComputation(
         classFile: ClassFile,
@@ -53,6 +54,8 @@ case class UselessComputation(
     def opcode: Int = method.body.get.instructions(pc).opcode
 
     def line: Option[Int] = method.body.get.lineNumber(pc)
+
+    private val methodIndex = classFile.methods.sortWith(_.toJava < _.toJava).indexOf(method).toString
 
     def message: String = {
 
@@ -76,15 +79,20 @@ case class UselessComputation(
 
     def toXHTML: Node = {
 
-        val pcNode = <span>{ pc }</span>
+        val pcNode = <span data-class={ classFile.fqn } data-method={ methodIndex } data-pc={ pc.toString }>{ pc }</span>
 
         val node =
             <tr style="color:rgb(126, 64, 64);">
-                <td>
-                    { XHTML.typeToXHTML(classFile.thisType) }
-                </td>
-                <td>{ XHTML.methodToXHTML(method.name, method.descriptor) }</td>
-                <td>{ pcNode }{ "/ "+line.getOrElse("N/A") }</td>
+                <td><span data-class={ classFile.fqn }>
+                        { XHTML.typeToXHTML(classFile.thisType) }
+                    </span></td>
+                <td><span data-class={ classFile.fqn } data-method={ methodIndex }>
+                        { XHTML.methodToXHTML(method.name, method.descriptor) }
+                    </span></td>
+                <td>{ pcNode }{
+                    Text("/ ") ++ line.map(ln ⇒
+                        <span data-class={ classFile.fqn } data-method={ methodIndex } data-line={ ln.toString }>{ ln }</span>).getOrElse(Text("N/A"))
+                }</td>
                 <td>{ computation }</td>
             </tr>
 
