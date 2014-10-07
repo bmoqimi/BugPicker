@@ -355,6 +355,30 @@ object bugPicker extends JFXApp {
             }
         }
 
+        def showHelpMessage(message: String) {
+            val helpStage: Stage = new Stage {
+                val self = this
+                title = "Help"
+                width = 800
+                height = 600
+                scene = new Scene {
+                    root = new WebView {
+                        engine.loadContent(message)
+                    }
+                }
+                scene.delegate().getAccelerators().put(new KeyCodeCombination(KeyCode.ESCAPE), new Runnable() {
+                    override def run() {
+                        self.close()
+                    }
+                })
+            }
+            helpStage.initModality(Modality.NONE)
+            helpStage.initOwner(stage)
+            helpStage.initStyle(StageStyle.UTILITY)
+            helpStage.centerOnScreen
+            helpStage.show
+        }
+
         val menuBar = new MenuBar {
             menus = List(
                 new Menu("_File") {
@@ -385,7 +409,20 @@ object bugPicker extends JFXApp {
                             onAction = { e: ActionEvent ⇒ stage.close() }
                         })
                 },
-                analyseButton
+                analyseButton,
+                new Menu("_Help") {
+                    mnemonicParsing = true
+                    items = List(
+                        new MenuItem("_Loading a project") {
+                            mnemonicParsing = true
+                            onAction = { e: ActionEvent ⇒ showHelpMessage(MESSAGE_APP_STARTED) }
+                        },
+                        new MenuItem("_Browsing the report") {
+                            mnemonicParsing = true
+                            onAction = { e: ActionEvent ⇒ showHelpMessage(MESSAGE_ANALYSIS_FINISHED) }
+                        }
+                    )
+                }
             )
         }
         downSplitpane.getItems().addAll(resultWebview, tabbedArea)
