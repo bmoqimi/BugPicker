@@ -258,11 +258,29 @@ object bugPicker extends JFXApp {
                             "\n",
                             f"%nIdentified in: ${ns2sec(analysisTime)}%2.2f seconds."))
                     br.message
-
                 }
-
             }
-        })
+        }) {
+            handleEvent(WorkerStateEvent.ANY) { event: WorkerStateEvent ⇒
+                event.eventType match {
+                    case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
+                        resultWebview.engine.loadContent(doc.toString)
+                        new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, bytecodeWebview, sourceWebview, { view ⇒
+                            if (view == bytecodeWebview) tabbedArea.selectionModel().select(0)
+                            else if (view == sourceWebview) tabbedArea.selectionModel().select(1)
+                        })
+                        bytecodeWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
+                        sourceWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
+                    }
+                    case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
+                        resultWebview.engine.loadContent(MESSAGE_ANALYSIS_RUNNING)
+                    }
+                    case _default ⇒ {
+                        resultWebview.engine.loadContent(event.eventType.toString)
+                    }
+                }
+            }
+        }
 
         def createHTMLReport(results: (Long, Iterable[BugReport])): Node = {
             var report = XHTML.createXHTML(Some(deadCodeAnalysis.title), DeadCodeAnalysis.resultsAsXHTML(results))
@@ -279,31 +297,6 @@ object bugPicker extends JFXApp {
         }
 
         def runAnalysis(files: List[java.io.File]) {
-            val et = WorkerStateEvent.ANY
-            Worker.handleEvent(et) {
-                event: WorkerStateEvent ⇒
-                    {
-                        event.eventType match {
-                            case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {
-                                resultWebview.engine.loadContent(doc.toString)
-                                new AddClickListenersOnLoadListener(project, sourceDir, resultWebview, bytecodeWebview, sourceWebview, { view ⇒
-                                    if (view == bytecodeWebview) tabbedArea.selectionModel().select(0)
-                                    else if (view == sourceWebview) tabbedArea.selectionModel().select(1)
-                                })
-                                bytecodeWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
-                                sourceWebview.engine.loadContent(MESSAGE_ANALYSIS_FINISHED)
-                            }
-                            case WorkerStateEvent.WORKER_STATE_RUNNING ⇒ {
-                                resultWebview.engine.loadContent(MESSAGE_ANALYSIS_RUNNING)
-                            }
-                            case _default ⇒ {
-                                resultWebview.engine.loadContent(event.eventType.toString)
-                            }
-                        }
-
-                    }
-
-            }
             interuptAnalysis = false
             Worker.restart
             showProgressManagement
