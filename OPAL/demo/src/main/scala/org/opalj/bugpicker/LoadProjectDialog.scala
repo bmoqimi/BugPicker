@@ -19,6 +19,10 @@ import scalafx.scene.layout.Priority
 import scalafx.geometry.Pos
 import scalafx.scene.control.Tooltip
 import scalafx.scene.control.TitledPane
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyEvent
+import javafx.event.EventHandler
 
 class LoadProjectDialog extends Stage {
     private final val buttonWidth = 200
@@ -226,7 +230,7 @@ class LoadProjectDialog extends Stage {
                             minWidth = 80
                             onAction = { e: ActionEvent ⇒
                                 cancelled = true
-                                self.close
+                                self.close()
                             }
                         },
                         new Button {
@@ -244,6 +248,16 @@ class LoadProjectDialog extends Stage {
 
         }
     }
+    scene().addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler[KeyEvent] {
+        override def handle(e: KeyEvent) {
+            if (e.getCode().equals(KeyCode.ESCAPE)) {
+                cancelled = true
+                close()
+            } else if (e.getCode().equals(KeyCode.ENTER)) {
+                close()
+            }
+        }
+    })
 
     def show(owner: Stage): List[List[java.io.File]] = {
         initModality(Modality.WINDOW_MODAL)

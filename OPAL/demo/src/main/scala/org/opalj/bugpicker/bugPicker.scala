@@ -64,6 +64,10 @@ import scalafx.stage.Screen
 import scalafx.scene.control.TabPane
 import scalafx.scene.control.Tab
 import scalafx.event.subscriptions.Subscription
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
+import javafx.event.EventHandler
 
 object bugPicker extends JFXApp {
     def getMessage(path: String): String = process(getClass.getResourceAsStream(path))(Source.fromInputStream(_).mkString)
@@ -165,27 +169,36 @@ object bugPicker extends JFXApp {
             title = "Analysis Progress "
             width = 800
             height = 600
+            def onCancel() {
+                cancelled = true
+                interuptAnalysis = true
+                resultWebview.engine.loadContent(MESSAGE_ANALYSES_CANCELLING)
+                outer.close
+            }
             scene = new Scene {
-                val but = new Button {
-                    id = "Cancel"
-                    text = "Cancel"
-                    minWidth = 80
-                    onAction = { e: ActionEvent ⇒
-                        {
-                            cancelled = true
-                            interuptAnalysis = true
-                            resultWebview.engine.loadContent(MESSAGE_ANALYSES_CANCELLING)
-                            outer.close
-                        }
-                    }
-                }
                 root = new BorderPane {
                     center = progressListView
-                    bottom = but
+                    bottom = new Button {
+                        id = "Cancel"
+                        text = "Cancel"
+                        minWidth = 80
+                        onAction = { e: ActionEvent ⇒
+                            {
+                                onCancel()
+                            }
+                        }
+                        BorderPane.setAlignment(this, Pos.CENTER)
+                        BorderPane.setMargin(this, new Insets(10))
+                    }
                 }
-                BorderPane.setAlignment(but, Pos.CENTER)
-                BorderPane.setMargin(but, new Insets(10))
             }
+            scene().addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler[KeyEvent] {
+                override def handle(e: KeyEvent) {
+                    if (e.getCode().equals(KeyCode.ESCAPE)) {
+                        onCancel()
+                    }
+                }
+            })
         }
 
         def showProgressManagement(): Boolean = {
@@ -365,6 +378,11 @@ object bugPicker extends JFXApp {
                                     infoThread.start
                                 }
                             }
+                        },
+                        new MenuItem("_Quit") {
+                            mnemonicParsing = true
+                            accelerator = KeyCombination("Shortcut+Q")
+                            onAction = { e: ActionEvent ⇒ stage.close() }
                         })
                 },
                 analyseButton
