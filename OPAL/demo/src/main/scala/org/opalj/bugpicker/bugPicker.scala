@@ -63,28 +63,18 @@ import scalafx.geometry.Pos
 import scalafx.stage.Screen
 import scalafx.scene.control.TabPane
 import scalafx.scene.control.Tab
+import scalafx.event.subscriptions.Subscription
 
 object bugPicker extends JFXApp {
-    final val MESSAGE_ANALYSIS_RUNNING =
-        <html>
-            <h1>Running analysis and generating report&hellip;</h1>
-        </html>.toString
-    final val MESSAGE_ANALYSIS_FINISHED =
-        <html>
-            <h1>Click on any line to browse the relevant source code or bytecode</h1>
-        </html>.toString
-    final val MESSAGE_LOADING_FINISHED =
-        <html>
-            <h1>Now use the menu bar (or Ctrl+R/Cmd+R) to run the analysis</h1>
-        </html>.toString
-    final val MESSAGE_APP_STARTED =
-        <html>
-            <h1>Use the menu bar (or Ctrl+O/Cmd+O) load your project</h1>
-        </html>.toString
-    final val MESSAGE_LOADING_STARTED =
-        <html>
-            <h1>Please wait while the project is loaded&hellip;</h1>
-        </html>.toString
+    def getMessage(path: String): String = process(getClass.getResourceAsStream(path))(Source.fromInputStream(_).mkString)
+
+    final val MESSAGE_ANALYSIS_RUNNING = getMessage("/org/opalj/bugpicker/messages/analysisrunning.html")
+    final val MESSAGE_ANALYSIS_FINISHED = getMessage("/org/opalj/bugpicker/messages/analysisfinished.html")
+    final val MESSAGE_LOADING_FINISHED = getMessage("/org/opalj/bugpicker/messages/projectloadingfinished.html")
+    final val MESSAGE_APP_STARTED = getMessage("/org/opalj/bugpicker/messages/appstarted.html")
+    final val MESSAGE_LOADING_STARTED = getMessage("/org/opalj/bugpicker/messages/projectloadingstarted.html")
+    final val MESSAGE_ANALYSES_CANCELLING = getMessage("/org/opalj/bugpicker/messages/analysescancelling.html")
+    final val MESSAGE_LOAD_CLASSES_FIRST = getMessage("/org/opalj/bugpicker/messages/loadclassesfirst.html")
 
     object ae extends AnalysisExecutor {
         val deadCodeAnalysis = new DeadCodeAnalysis
@@ -145,6 +135,7 @@ object bugPicker extends JFXApp {
             text = "Please use the toolbar to load the project"
         }
         val resultWebview = new WebView()
+        resultWebview.engine.loadContent(MESSAGE_APP_STARTED)
         val tabbedArea = new TabPane()
         val sourceWebview = new WebView()
         val bytecodeWebview = new WebView()
@@ -183,7 +174,7 @@ object bugPicker extends JFXApp {
                         {
                             cancelled = true
                             interuptAnalysis = true
-                            resultWebview.engine.loadContent("Please wait until all analyses are cancelled")
+                            resultWebview.engine.loadContent(MESSAGE_ANALYSES_CANCELLING)
                             outer.close
                         }
                     }
@@ -313,7 +304,7 @@ object bugPicker extends JFXApp {
                         if (!analysisDisabled)
                             runAnalysis(files)
                         else {
-                            resultWebview.engine.loadContent("Please use File menu to add some class files to analyse first")
+                            resultWebview.engine.loadContent(MESSAGE_LOAD_CLASSES_FIRST)
                             println("ERROR: Please use File menu to add some class files to analyse first")
                         }
                     }

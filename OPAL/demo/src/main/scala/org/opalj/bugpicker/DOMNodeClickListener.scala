@@ -41,8 +41,7 @@ class DOMNodeClickListener(
         sourceWebview: WebView,
         focus: WebView ⇒ Unit) extends EventListener {
 
-    private final val MESSAGE_NO_BYTECODE_FOUND =
-        <html><h1>No source- or bytecode for this class could be found!</h1></html>
+    private final val MESSAGE_NO_BYTECODE_FOUND = bugPicker.getMessage("/org/opalj/bugpicker/messages/nobytecodefound.html")
 
     private val nodeAttributes = node.getAttributes
 
@@ -123,7 +122,10 @@ class DOMNodeClickListener(
         }
         if (loadBytecode || noSourceFound) {
             val classFile = decompileClassFile(project, sourceType)
-            bytecodeWebview.engine.loadContent(classFile.map(_.toXHTML).getOrElse(MESSAGE_NO_BYTECODE_FOUND).toString)
+            if (classFile.isDefined)
+                bytecodeWebview.engine.loadContent(classFile.get.toXHTML.toString)
+            else
+                bytecodeWebview.engine.loadContent(MESSAGE_NO_BYTECODE_FOUND)
             new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
             if (!loadSource || noSourceFound) focus(bytecodeWebview)
         }
