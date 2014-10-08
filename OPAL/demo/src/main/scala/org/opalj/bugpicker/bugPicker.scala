@@ -144,13 +144,13 @@ object bugPicker extends JFXApp {
         val sourceWebview = new WebView()
         val bytecodeWebview = new WebView()
         tabbedArea += new Tab {
-            text = "Bytecode"
-            content = bytecodeWebview
+            text = "Source code"
+            content = sourceWebview
             closable = false
         }
         tabbedArea += new Tab {
-            text = "Source code"
-            content = sourceWebview
+            text = "Bytecode"
+            content = bytecodeWebview
             closable = false
         }
         var files: List[java.io.File] = List()
