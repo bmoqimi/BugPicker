@@ -32,10 +32,10 @@ object Messages {
 }
 
 class HelpTopic(val title: String, val content: String) {
-    private val wv = new WebView
-    wv.engine.loadContent(content)
 
     def show(owner: Stage) {
+        val wv = new WebView
+        wv.engine.loadContent(content)
         val stage = new DialogStage(owner) {
             scene = new Scene {
                 root = wv
