@@ -53,8 +53,15 @@ import scalafx.beans.property.DoubleProperty
 import scalafx.scene.control.ProgressBar
 import scalafx.scene.layout.Priority
 import scalafx.scene.layout.HBox
+import java.util.prefs.Preferences
 
 object BugPicker extends JFXApp {
+    final val PREFERENCES_KEY = "/org/opalj/bugpicker"
+    final val PREFERENCES = Preferences.userRoot().node(PREFERENCES_KEY)
+    final val PREFERENCES_KEY_CLASSES = "classes"
+    final val PREFERENCES_KEY_LIBS = "libs"
+    final val PREFERENCES_KEY_SOURCES = "sources"
+
     var project: Project[URL] = null
     var sources: Seq[File] = Seq.empty
 
@@ -127,23 +134,25 @@ object BugPicker extends JFXApp {
                     mnemonicParsing = true
                     items = Seq(
                         new MenuItem {
-                            text = "_Load"
+                            text = "L_oad"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
                             onAction = { e: ActionEvent ⇒
-                                val dia = new LoadProjectDialog
+                                val (preloadJars, preloadLibs, preloadSources) = loadPreferences()
+                                val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
                                 val results = dia.show(stage)
                                 val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
                                 val sourceView = stage.scene().lookup("#sourceView").asInstanceOf[jWebView]
                                 val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
                                 val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
-                                if (results != null && !results(0).isEmpty) {
+                                if (results.isDefined && !results.get._1.isEmpty) {
+                                    storePreferences(results.get)
                                     sourceView.engine.loadContent(Messages.LOADING_STARTED)
                                     byteView.engine.loadContent(Messages.LOADING_STARTED)
                                     reportView.engine.loadContent("")
                                     Service {
                                         Task[Unit] {
-                                            val projectAndSources = ProjectHelper.setupProject(results, stage)
+                                            val projectAndSources = ProjectHelper.setupProject(results.get, stage)
                                             project = projectAndSources._1
                                             sources = projectAndSources._2
                                             Platform.runLater {
@@ -154,7 +163,7 @@ object BugPicker extends JFXApp {
                                             }
                                         }
                                     }.start
-                                } else if (results != null && results(0).isEmpty) {
+                                } else if (results.isDefined && results.get._1.isEmpty) {
                                     DialogStage.showMessage("You have not specified any classes to be analyzed!", stage)
                                 }
                             }
@@ -204,5 +213,26 @@ object BugPicker extends JFXApp {
                     )
                 })
         }
+    }
+
+    val sep = File.pathSeparator
+
+    def storePreferences(loadedFiles: (List[File], List[File], List[File])) {
+        def filesToPref(key: String, files: List[File]) =
+            PREFERENCES.put(key, files.mkString(sep))
+
+        filesToPref(PREFERENCES_KEY_CLASSES, loadedFiles._1)
+        filesToPref(PREFERENCES_KEY_LIBS, loadedFiles._2)
+        filesToPref(PREFERENCES_KEY_SOURCES, loadedFiles._3)
+    }
+
+    def loadPreferences(): (Seq[File], Seq[File], Seq[File]) = {
+        def prefAsFiles(key: String): Seq[File] =
+            PREFERENCES.get(key, "").split(sep).filterNot(_.isEmpty).map(new File(_))
+
+        val classes = prefAsFiles(PREFERENCES_KEY_CLASSES)
+        val libs = prefAsFiles(PREFERENCES_KEY_LIBS)
+        val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
+        (classes, libs, sources)
     }
 }

@@ -22,10 +22,11 @@ import scala.language.implicitConversions
 import scalafx.scene.Scene
 
 object ProjectHelper {
-    def setupProject(loadedFiles: List[List[File]], parentStage: Stage): (Project[URL], Seq[File]) = {
-        val files = loadedFiles(0)
-        val sources = loadedFiles(1)
-        val libs = loadedFiles(2)
+    def setupProject(loadedFiles: (List[File], List[File], List[File]), parentStage: Stage): (Project[URL], Seq[File]) = {
+
+        val files = loadedFiles._1
+        val libs = loadedFiles._2
+        val sources = loadedFiles._3
         val project = setupProject(files, libs, parentStage)
         (project, sources)
     }

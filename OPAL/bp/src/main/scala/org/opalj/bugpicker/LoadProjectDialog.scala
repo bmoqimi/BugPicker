@@ -26,24 +26,31 @@ import javafx.event.EventHandler
 import scala.collection.mutable.ListBuffer
 import java.io.File
 
-class LoadProjectDialog extends Stage {
+class LoadProjectDialog(
+        preloadJars: Seq[File] = Seq.empty,
+        preloadLibs: Seq[File] = Seq.empty,
+        preloadSources: Seq[File] = Seq.empty) extends Stage {
     private final val buttonWidth = 200
     private final val buttonMargin = Insets(5)
 
     private final val boxMargin = Insets(10)
     private final val boxPadding = Insets(10)
 
-    val jars = ListBuffer[File]()
-    val sources = ListBuffer[File]()
-    val libs = ListBuffer[File]()
+    val jars = ListBuffer[File]() ++ preloadJars
+    val sources = ListBuffer[File]() ++ preloadSources
+    val libs = ListBuffer[File]() ++ preloadLibs
+
     var cancelled = false
     val jarListview = new ListView[String] {
+        items() ++= jars.map(_.toString)
         hgrow = Priority.ALWAYS
     }
     val libsListview = new ListView[String] {
+        items() ++= libs.map(_.toString)
         hgrow = Priority.ALWAYS
     }
     val sourceListview = new ListView[String] {
+        items() ++= sources.map(_.toString)
         hgrow = Priority.ALWAYS
     }
 
@@ -268,17 +275,16 @@ class LoadProjectDialog extends Stage {
         }
     })
 
-    def show(owner: Stage): List[List[java.io.File]] = {
+    def show(owner: Stage): Option[(List[File], List[File], List[File])] = {
         initModality(Modality.WINDOW_MODAL)
         initOwner(owner.scene().windowProperty().get)
         initStyle(StageStyle.UTILITY)
         centerOnScreen
         showAndWait
         if (cancelled) {
-            null
+            None
         } else {
-            val results = List(jars.toList, sources.toList, libs.toList)
-            results
+            Some((jars.toList, libs.toList, sources.toList))
         }
     }
 }
