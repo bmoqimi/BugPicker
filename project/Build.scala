@@ -169,4 +169,9 @@ object OPALBuild extends Build {
 	).dependsOn(av % "it->it;it->test;test->test;compile->compile")
 	 .configs(IntegrationTest)
 
+	lazy val bugpicker = Project(
+		id = "BugPicker",
+		base = file("OPAL/bp"),
+		settings = buildSettings ++ Seq(publishArtifact := false)
+	).dependsOn(ai, da).configs(IntegrationTest)
 }

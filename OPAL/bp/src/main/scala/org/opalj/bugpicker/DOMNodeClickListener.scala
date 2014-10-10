@@ -4,15 +4,12 @@ package bugpicker
 import java.io.File
 import java.io.FilenameFilter
 import java.net.URL
-
 import scala.language.reflectiveCalls
-
 import org.opalj.br.ObjectType
 import org.opalj.br.analyses.Project
 import org.opalj.da.ClassFile
 import org.w3c.dom.Node
 import org.w3c.dom.events.EventListener
-
 import scalafx.Includes.eventClosureWrapperWithParam
 import scalafx.Includes.jfxActionEvent2sfx
 import scalafx.Includes.jfxNode2sfx
@@ -32,16 +29,15 @@ import scalafx.scene.web.WebView
 import scalafx.stage.Modality
 import scalafx.stage.Stage
 import scalafx.stage.StageStyle
+import scala.collection.immutable.Stream
 
 class DOMNodeClickListener(
         project: Project[URL],
-        sourceDir: File,
+        sources: Seq[File],
         node: Node,
         bytecodeWebview: WebView,
         sourceWebview: WebView,
         focus: WebView ⇒ Unit) extends EventListener {
-
-    private final val MESSAGE_NO_BYTECODE_FOUND = bugPicker.getMessage("/org/opalj/bugpicker/messages/nobytecodefound.html")
 
     private val nodeAttributes = node.getAttributes
 
@@ -52,8 +48,6 @@ class DOMNodeClickListener(
             None
 
     def findSourceFile(
-        sourceDir: java.io.File,
-        project: Project[URL],
         theType: ObjectType,
         lineOption: Option[String]): Option[SourceFileWrapper] = {
 
@@ -67,15 +61,14 @@ class DOMNodeClickListener(
 
         val sourceFile: Option[File] =
             if (cf.sourceFile.isDefined) {
-                Some(new File(sourceDir, sourcePackagePath+"/"+cf.sourceFile.get))
+                sources.toStream.map(dir ⇒ new File(dir, sourcePackagePath+"/"+cf.sourceFile.get)).find(_.exists())
             } else {
                 val name = theType.simpleName
-                val packageDir = new File(sourceDir, sourcePackagePath)
-                val candidateFiles = packageDir.listFiles(new FilenameFilter {
+                val packageDir = sources.toStream.map(dir ⇒ new File(dir, sourcePackagePath)).find(_.exists())
+                packageDir.map(_.listFiles(new FilenameFilter {
                     override def accept(file: File, filename: String): Boolean =
                         filename.matches("^"+name+"\\.\\w+$")
-                })
-                if (candidateFiles.isEmpty) None else Some(candidateFiles(0))
+                })(0))
             }
 
         if (sourceFile.isDefined && sourceFile.get.exists) {
@@ -104,12 +97,12 @@ class DOMNodeClickListener(
         val (loadBytecode, loadSource) = getAttribute("data-load") match {
             case Some("bytecode")   ⇒ (true, false)
             case Some("sourcecode") ⇒ (false, true)
-            case _                  ⇒ (true, true)
+            case _                  ⇒ (true, sources.nonEmpty)
         }
 
         var noSourceFound = false
         if (loadSource) {
-            val sourceFile = findSourceFile(sourceDir, project, sourceType, lineOption)
+            val sourceFile = findSourceFile(sourceType, lineOption)
             if (sourceFile.isDefined) {
                 sourceWebview.engine.loadContent(sourceFile.get.toXHTML.toString)
                 new JumpToProblemListener(webview = sourceWebview, methodOption = methodOption, pcOption = None, lineOption = lineOption)
@@ -125,7 +118,7 @@ class DOMNodeClickListener(
             if (classFile.isDefined)
                 bytecodeWebview.engine.loadContent(classFile.get.toXHTML.toString)
             else
-                bytecodeWebview.engine.loadContent(MESSAGE_NO_BYTECODE_FOUND)
+                bytecodeWebview.engine.loadContent(Messages.NO_BYTECODE_FOUND)
             new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
             if (!loadSource || noSourceFound) focus(bytecodeWebview)
         }

@@ -23,6 +23,8 @@ import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyEvent
 import javafx.event.EventHandler
+import scala.collection.mutable.ListBuffer
+import java.io.File
 
 class LoadProjectDialog extends Stage {
     private final val buttonWidth = 200
@@ -31,9 +33,9 @@ class LoadProjectDialog extends Stage {
     private final val boxMargin = Insets(10)
     private final val boxPadding = Insets(10)
 
-    var jars: List[java.io.File] = List()
-    var sources: java.io.File = null
-    var libs: java.io.File = null
+    val jars = ListBuffer[File]()
+    val sources = ListBuffer[File]()
+    val libs = ListBuffer[File]()
     var cancelled = false
     val jarListview = new ListView[String] {
         hgrow = Priority.ALWAYS
@@ -81,8 +83,8 @@ class LoadProjectDialog extends Stage {
                                                 new FileChooser.ExtensionFilter("Class Files", "*.class"))
                                             val file = fcb.showOpenDialog(scene().getWindow())
                                             if (file != null) {
-                                                jars :::= List(file)
-                                                jarListview.items.get.add(jars(0).toString())
+                                                jars += file
+                                                jarListview.items.get.add(file.toString())
                                             }
 
                                         }
@@ -99,9 +101,8 @@ class LoadProjectDialog extends Stage {
                                             }
                                             val file = dc.showDialog(scene().window())
                                             if (file != null) {
-
-                                                jars :::= List(file)
-                                                jarListview.items() += jars(0).toString()
+                                                jars += file
+                                                jarListview.items() += file.toString()
                                             }
                                         }
                                     },
@@ -112,18 +113,14 @@ class LoadProjectDialog extends Stage {
                                         minWidth = buttonWidth
                                         margin = buttonMargin
                                         onAction = { e: ActionEvent ⇒
-                                            val removed = jarListview.selectionModel().getSelectedItem()
-                                            val temp = jars
-                                            jars = List[java.io.File]()
-                                            temp.foreach {
-                                                file ⇒
-                                                    {
-                                                        if (file.toString != removed) {
-                                                            jars :::= List(file)
-                                                        }
-                                                    }
+                                            val selection = jarListview.selectionModel().getSelectedIndices
+                                            if (!selection.isEmpty()) {
+                                                selection.reverse.foreach { i ⇒
+                                                    if (jars.isDefinedAt(i)) jars.remove(i)
+                                                }
+                                                jarListview.items().clear()
+                                                jarListview.items() ++= jars.map(_.toString)
                                             }
-                                            jarListview.items() -= removed
                                         }
                                     })
                             })
@@ -155,8 +152,8 @@ class LoadProjectDialog extends Stage {
                                                 new FileChooser.ExtensionFilter("Class Files", "*.class"))
                                             val file = fcb.showOpenDialog(scene().getWindow())
                                             if (file != null) {
-                                                libs = file
-                                                libsListview.items() += libs.toString()
+                                                libs += file
+                                                libsListview.items() += file.toString()
                                             }
 
                                         }
@@ -168,8 +165,14 @@ class LoadProjectDialog extends Stage {
                                         minWidth = buttonWidth
                                         margin = buttonMargin
                                         onAction = { e: ActionEvent ⇒
-                                            libsListview.items() -= libs.toString()
-                                            libs = null
+                                            val selection = libsListview.selectionModel().getSelectedIndices
+                                            if (!selection.isEmpty()) {
+                                                selection.reverse.foreach { i ⇒
+                                                    if (libs.isDefinedAt(i)) libs.remove(i)
+                                                }
+                                                libsListview.items().clear()
+                                                libsListview.items() ++= libs.map(_.toString())
+                                            }
                                         }
                                     })
                             })
@@ -198,8 +201,8 @@ class LoadProjectDialog extends Stage {
                                             }
                                             val file = dc.showDialog(scene().window())
                                             if (file != null) {
-                                                sources = file
-                                                sourceListview.items() += sources.toString()
+                                                sources += file
+                                                sourceListview.items() += file.toString()
                                             }
                                         }
                                     },
@@ -210,8 +213,14 @@ class LoadProjectDialog extends Stage {
                                         minWidth = buttonWidth
                                         margin = buttonMargin
                                         onAction = { e: ActionEvent ⇒
-                                            sourceListview.items() -= sources.toString()
-                                            sources = null
+                                            val selection = sourceListview.selectionModel().getSelectedIndices
+                                            if (!selection.isEmpty()) {
+                                                selection.reverse.foreach { i ⇒
+                                                    if (sources.isDefinedAt(i)) sources.remove(i)
+                                                }
+                                                sourceListview.items().clear()
+                                                sourceListview.items() ++= sources.map(_.toString)
+                                            }
                                         }
                                     })
                             })
@@ -268,7 +277,7 @@ class LoadProjectDialog extends Stage {
         if (cancelled) {
             null
         } else {
-            val results = List(jars, List(sources), List(libs))
+            val results = List(jars.toList, sources.toList, libs.toList)
             results
         }
     }

@@ -1,12 +1,12 @@
 import AssemblyKeys._
 
-name := "Demo"
+name := "BugPicker"
 
 version := "ALWAYS-SNAPSHOT"
 
 scalacOptions in (Compile, doc) := Seq("-deprecation", "-feature", "-unchecked")
 
-scalacOptions in (Compile, doc) ++= Opts.doc.title("OPAL - Demos")
+scalacOptions in (Compile, doc) ++= Opts.doc.title("OPAL - BugPicker")
 
 libraryDependencies += "org.scalafx"  %% "scalafx"   % "1.0.0-R8"
 
@@ -18,3 +18,11 @@ fork in run := true
 javaOptions in run := Seq("-Xmx2G", "-Xms1024m", "-XX:NewRatio=1", "-XX:SurvivorRatio=8", "-XX:+UseParallelGC", "-XX:+AggressiveOpts", "-Xnoclassgc")
 
 scalaVersion := "2.11.1"
+
+assemblySettings
+
+jarName in assembly := "bugpicker.jar"
+
+test in assembly := {}
+
+mainClass in assembly := Some("org.opalj.bugpicker.BugPicker")
