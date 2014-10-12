@@ -23,8 +23,10 @@ object Messages {
     final val ANALYSES_CANCELLING = getMessage("/org/opalj/bugpicker/messages/analysescancelling.html")
     final val LOAD_CLASSES_FIRST = getMessage("/org/opalj/bugpicker/messages/loadclassesfirst.html")
     final val NO_BYTECODE_FOUND = getMessage("/org/opalj/bugpicker/messages/nobytecodefound.html")
+    final val GET_HELP = getMessage("/org/opalj/bugpicker/messages/gethelp.html")
 
     val helpTopics: Seq[HelpTopic] = Seq(
+        new HelpTopic("How to get help", GET_HELP),
         new HelpTopic("How to load a project", APP_STARTED),
         new HelpTopic("How to run an analysis", LOADING_FINISHED),
         new HelpTopic("How to browse the report", ANALYSIS_FINISHED)
@@ -44,4 +46,6 @@ class HelpTopic(val title: String, val content: String) {
         stage.title = title
         stage.showAndWait
     }
+
+    override def toString: String = title
 }

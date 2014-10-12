@@ -175,13 +175,12 @@ object BugPicker extends JFXApp {
                 new Menu {
                     text = "_Help"
                     mnemonicParsing = true
-                    items = Messages.helpTopics.map { ht ⇒
+                    items = Seq(
                         new MenuItem {
-                            text = ht.title
-                            onAction = { e: ActionEvent ⇒ ht.show(stage) }
-                        }
-                    } ++ Seq[MenuItem](
-                        new SeparatorMenuItem,
+                            text = "_Browse Help"
+                            mnemonicParsing = true
+                            onAction = { e: ActionEvent ⇒ HelpBrowser.show() }
+                        },
                         new MenuItem {
                             text = "_About"
                             mnemonicParsing = true

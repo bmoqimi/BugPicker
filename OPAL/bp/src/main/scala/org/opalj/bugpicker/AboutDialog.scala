@@ -38,6 +38,7 @@ class AboutDialog(owner: Stage) extends DialogStage(owner) {
             bottom = new HBox {
                 content = new Button {
                     text = "Close"
+                    defaultButton = true
                     HBox.setMargin(this, Insets(10))
                     onAction = { e: ActionEvent ⇒ close() }
                 }
