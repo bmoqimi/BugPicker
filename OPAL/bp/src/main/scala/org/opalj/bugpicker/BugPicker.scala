@@ -23,6 +23,7 @@ import scalafx.stage.WindowEvent
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.geometry.Orientation
 import scalafx.scene.input.KeyCombination
+import scalafx.scene.input.KeyCodeCombination
 import scalafx.scene.Node
 import org.opalj.br.analyses.Project
 import java.net.URL
@@ -179,6 +180,7 @@ object BugPicker extends JFXApp {
                         new MenuItem {
                             text = "_Browse Help"
                             mnemonicParsing = true
+                            accelerator = new KeyCodeCombination(KeyCode.F1)
                             onAction = { e: ActionEvent ⇒ HelpBrowser.show() }
                         },
                         new MenuItem {

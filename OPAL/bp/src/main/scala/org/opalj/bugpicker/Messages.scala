@@ -2,15 +2,6 @@ package org.opalj
 package bugpicker
 
 import scala.io.Source
-import scalafx.Includes._
-import scalafx.stage.Stage
-import scalafx.scene.Scene
-import scalafx.scene.web.WebView
-import scalafx.scene.input.KeyCombination
-import scalafx.scene.input.KeyCodeCombination
-import scalafx.scene.input.KeyCode
-import scalafx.stage.Modality
-import scalafx.stage.StageStyle
 
 object Messages {
     def getMessage(path: String): String = process(getClass.getResourceAsStream(path))(Source.fromInputStream(_).mkString)
@@ -26,26 +17,15 @@ object Messages {
     final val GET_HELP = getMessage("/org/opalj/bugpicker/messages/gethelp.html")
 
     val helpTopics: Seq[HelpTopic] = Seq(
-        new HelpTopic("How to get help", GET_HELP),
-        new HelpTopic("How to load a project", APP_STARTED),
-        new HelpTopic("How to run an analysis", LOADING_FINISHED),
-        new HelpTopic("How to browse the report", ANALYSIS_FINISHED)
+        new HelpTopic(GET_HELP),
+        new HelpTopic(APP_STARTED),
+        new HelpTopic(LOADING_FINISHED),
+        new HelpTopic(ANALYSIS_FINISHED)
     )
 }
 
-class HelpTopic(val title: String, val content: String) {
-
-    def show(owner: Stage) {
-        val wv = new WebView
-        wv.engine.loadContent(content)
-        val stage = new DialogStage(owner) {
-            scene = new Scene {
-                root = wv
-            }
-        }
-        stage.title = title
-        stage.showAndWait
-    }
+class HelpTopic(val content: String) {
+    val title = "<h2>(.*)</h2>".r.findFirstMatchIn(content).map(_.group(1)).getOrElse("Untitled")
 
     override def toString: String = title
 }
