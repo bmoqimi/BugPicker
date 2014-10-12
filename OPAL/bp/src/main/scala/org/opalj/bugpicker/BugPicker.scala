@@ -137,13 +137,13 @@ object BugPicker extends JFXApp {
                             text = "L_oad"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
-                            onAction = new LoadProjectAction(usePreferences = false)
+                            onAction = loadProjectAction(usePreferences = false)
                         },
                         new MenuItem {
                             text = "_Load last project"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+L")
-                            onAction = new LoadProjectAction(usePreferences = true)
+                            onAction = loadProjectAction(usePreferences = true)
                         },
                         new MenuItem {
                             text = "_Project info"
@@ -211,10 +211,9 @@ object BugPicker extends JFXApp {
         val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
         (classes, libs, sources)
     }
-
-    private class LoadProjectAction(usePreferences: Boolean) extends Function1[ActionEvent, Unit] {
-        override def apply(e: ActionEvent) {
-            val (preloadJars, preloadLibs, preloadSources) = if (usePreferences) loadPreferences() else (Seq.empty, Seq.empty, Seq.empty)
+    
+    private def loadProjectAction(usePreferences: Boolean): ActionEvent => Unit = { e: ActionEvent =>
+        val (preloadJars, preloadLibs, preloadSources) = if (usePreferences) loadPreferences() else (Seq.empty, Seq.empty, Seq.empty)
             val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
             val results = dia.show(stage)
             val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
@@ -242,6 +241,5 @@ object BugPicker extends JFXApp {
             } else if (results.isDefined && results.get._1.isEmpty) {
                 DialogStage.showMessage("You have not specified any classes to be analyzed!", stage)
             }
-        }
     }
 }
