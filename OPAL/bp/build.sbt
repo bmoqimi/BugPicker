@@ -17,8 +17,6 @@ fork in run := true
 //19.9secs... javaOptions in run := Seq("-Xmx2G", "-Xms1014m", "-XX:NewRatio=1", "-XX:SurvivorRatio=8", "-XX:+UseParallelGC", "-XX:+AggressiveOpts", "-Xnoclassgc", "-XX:InlineSmallCode=2048", "-XX:MaxInlineSize=64")
 javaOptions in run := Seq("-Xmx2G", "-Xms1024m", "-XX:NewRatio=1", "-XX:SurvivorRatio=8", "-XX:+UseParallelGC", "-XX:+AggressiveOpts", "-Xnoclassgc")
 
-scalaVersion := "2.11.1"
-
 assemblySettings
 
 jarName in assembly := "bugpicker.jar"

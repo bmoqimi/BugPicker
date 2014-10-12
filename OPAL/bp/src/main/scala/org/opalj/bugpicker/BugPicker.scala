@@ -137,36 +137,13 @@ object BugPicker extends JFXApp {
                             text = "L_oad"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
-                            onAction = { e: ActionEvent ⇒
-                                val (preloadJars, preloadLibs, preloadSources) = loadPreferences()
-                                val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
-                                val results = dia.show(stage)
-                                val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
-                                val sourceView = stage.scene().lookup("#sourceView").asInstanceOf[jWebView]
-                                val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
-                                val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
-                                if (results.isDefined && !results.get._1.isEmpty) {
-                                    storePreferences(results.get)
-                                    sourceView.engine.loadContent(Messages.LOADING_STARTED)
-                                    byteView.engine.loadContent(Messages.LOADING_STARTED)
-                                    reportView.engine.loadContent("")
-                                    Service {
-                                        Task[Unit] {
-                                            val projectAndSources = ProjectHelper.setupProject(results.get, stage)
-                                            project = projectAndSources._1
-                                            sources = projectAndSources._2
-                                            Platform.runLater {
-                                                stage.scene().lookup("#sourceTabs-source").disable = sources.isEmpty
-                                                if (sources.isEmpty) tabPane.selectionModel().select(1)
-                                                sourceView.engine.loadContent(Messages.LOADING_FINISHED)
-                                                byteView.engine.loadContent(Messages.LOADING_FINISHED)
-                                            }
-                                        }
-                                    }.start
-                                } else if (results.isDefined && results.get._1.isEmpty) {
-                                    DialogStage.showMessage("You have not specified any classes to be analyzed!", stage)
-                                }
-                            }
+                            onAction = new LoadProjectAction(usePreferences = false)
+                        },
+                        new MenuItem {
+                            text = "_Load last project"
+                            mnemonicParsing = true
+                            accelerator = KeyCombination("Shortcut+L")
+                            onAction = new LoadProjectAction(usePreferences = true)
                         },
                         new MenuItem {
                             text = "_Project info"
@@ -234,5 +211,38 @@ object BugPicker extends JFXApp {
         val libs = prefAsFiles(PREFERENCES_KEY_LIBS)
         val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
         (classes, libs, sources)
+    }
+
+    private class LoadProjectAction(usePreferences: Boolean) extends Function1[ActionEvent, Unit] {
+        override def apply(e: ActionEvent) {
+            val (preloadJars, preloadLibs, preloadSources) = if (usePreferences) loadPreferences() else (Seq.empty, Seq.empty, Seq.empty)
+            val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
+            val results = dia.show(stage)
+            val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
+            val sourceView = stage.scene().lookup("#sourceView").asInstanceOf[jWebView]
+            val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
+            val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
+            if (results.isDefined && !results.get._1.isEmpty) {
+                storePreferences(results.get)
+                sourceView.engine.loadContent(Messages.LOADING_STARTED)
+                byteView.engine.loadContent(Messages.LOADING_STARTED)
+                reportView.engine.loadContent("")
+                Service {
+                    Task[Unit] {
+                        val projectAndSources = ProjectHelper.setupProject(results.get, stage)
+                        project = projectAndSources._1
+                        sources = projectAndSources._2
+                        Platform.runLater {
+                            stage.scene().lookup("#sourceTabs-source").disable = sources.isEmpty
+                            if (sources.isEmpty) tabPane.selectionModel().select(1)
+                            sourceView.engine.loadContent(Messages.LOADING_FINISHED)
+                            byteView.engine.loadContent(Messages.LOADING_FINISHED)
+                        }
+                    }
+                }.start
+            } else if (results.isDefined && results.get._1.isEmpty) {
+                DialogStage.showMessage("You have not specified any classes to be analyzed!", stage)
+            }
+        }
     }
 }
