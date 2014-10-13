@@ -19,10 +19,9 @@ import scalafx.scene.layout.Priority
 import scalafx.geometry.Pos
 import scalafx.scene.control.Tooltip
 import scalafx.scene.control.TitledPane
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCodeCombination
-import javafx.scene.input.KeyEvent
-import javafx.event.EventHandler
+import scalafx.scene.input.KeyCode
+import scalafx.scene.input.KeyCodeCombination
+import scalafx.scene.input.KeyEvent
 import scala.collection.mutable.ListBuffer
 import java.io.File
 
@@ -263,22 +262,22 @@ class LoadProjectDialog(
             )
 
         }
-    }
-    scene().addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler[KeyEvent] {
-        override def handle(e: KeyEvent) {
-            if (e.getCode().equals(KeyCode.ESCAPE)) {
+        stylesheets += BugPicker.defaultStyles
+
+        filterEvent(KeyEvent.KeyPressed) { e: KeyEvent ⇒
+            if (e.code.equals(KeyCode.ESCAPE)) {
                 cancelled = true
                 close()
-            } else if (e.getCode().equals(KeyCode.ENTER)) {
+            } else if (e.code.equals(KeyCode.ENTER)) {
                 close()
             }
         }
-    })
+    }
 
     def show(owner: Stage): Option[(List[File], List[File], List[File])] = {
         initModality(Modality.WINDOW_MODAL)
         initOwner(owner.scene().windowProperty().get)
-        initStyle(StageStyle.UTILITY)
+        initStyle(StageStyle.DECORATED)
         centerOnScreen
         showAndWait
         if (cancelled) {

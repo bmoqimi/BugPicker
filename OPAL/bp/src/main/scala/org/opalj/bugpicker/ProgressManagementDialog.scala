@@ -73,6 +73,7 @@ class ProgressManagementDialog(
                 BorderPane.setMargin(this, Insets(10))
             }
         }
+        stylesheets += BugPicker.defaultStyles
         filterEvent(KeyEvent.KeyPressed) { e: KeyEvent ⇒
             if (e.code.equals(KeyCode.ESCAPE)) cancelAnalysisAndCloseWindow()
         }
@@ -80,5 +81,5 @@ class ProgressManagementDialog(
 
     initModality(Modality.WINDOW_MODAL)
     initOwner(owner)
-    initStyle(StageStyle.UTILITY)
+    initStyle(StageStyle.DECORATED)
 }

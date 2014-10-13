@@ -12,8 +12,8 @@ import scalafx.scene.control.SelectionMode
 
 object HelpBrowser extends Stage {
     title = "BugPicker Help"
-    minWidth = 600
-    minHeight = 800
+    minWidth = 800
+    minHeight = 600
 
     scene = new Scene {
         root = new SplitPane {
@@ -29,9 +29,10 @@ object HelpBrowser extends Stage {
             items ++= Seq(list, browser)
             dividerPositions = 0.3
         }
+        stylesheets += BugPicker.defaultStyles
     }
 
-    initStyle(StageStyle.UTILITY)
+    initStyle(StageStyle.DECORATED)
 
     override def show() {
         centerOnScreen()

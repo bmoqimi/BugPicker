@@ -10,12 +10,7 @@ import org.opalj.br.analyses.Project
 import org.opalj.da.ClassFile
 import org.w3c.dom.Node
 import org.w3c.dom.events.EventListener
-import scalafx.Includes.eventClosureWrapperWithParam
-import scalafx.Includes.jfxActionEvent2sfx
-import scalafx.Includes.jfxNode2sfx
-import scalafx.Includes.jfxObjectBinding2sfx
-import scalafx.Includes.jfxSceneProperty2sfx
-import scalafx.Includes.jfxWindow2sfx
+import scalafx.Includes._
 import scalafx.beans.property.ObjectProperty
 import scalafx.event.ActionEvent
 import scalafx.geometry.Insets
@@ -109,7 +104,8 @@ class DOMNodeClickListener(
                 if (!loadBytecode) focus(sourceWebview)
             } else {
                 noSourceFound = true
-                showWarning(s"Could not find source code for type $className.\nShowing bytecode instead.")
+                val msg = s"Could not find source code for type $className.\nShowing bytecode instead."
+                DialogStage.showMessage(msg, sourceWebview.scene().window())
                 sourceWebview.engine.loadContent("")
             }
         }
@@ -122,37 +118,5 @@ class DOMNodeClickListener(
             new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
             if (!loadSource || noSourceFound) focus(bytecodeWebview)
         }
-    }
-
-    def showWarning(msg: String) {
-        val dialog: Stage = new Stage {
-            title = "Warning"
-
-            scene = new Scene {
-                root = new BorderPane {
-                    center = new Label {
-                        text = msg
-                        wrapText = true
-                        maxWidth = 600
-                        margin = Insets(5, 5, 5, 5)
-                    }
-                    bottom = new Button {
-                        text = "Ok"
-                        override val labelPadding = ObjectProperty(Insets(2, 5, 2, 5))
-                        minWidth = 80
-                        margin = Insets(5, 5, 5, 5)
-                        onAction = { e: ActionEvent ⇒
-                            close
-                        }
-                    }
-                    BorderPane.setAlignment(bottom.value, Pos.BOTTOM_CENTER)
-                }
-            }
-        }
-        dialog.initStyle(StageStyle.UTILITY)
-        dialog.initModality(Modality.WINDOW_MODAL)
-        dialog.initOwner(sourceWebview.scene.window.value)
-        dialog.centerOnScreen
-        dialog.showAndWait
     }
 }

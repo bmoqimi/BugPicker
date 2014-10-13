@@ -41,6 +41,7 @@ object ProjectInfoDialog {
                     }
                     HBox.setMargin(button, Insets(10))
                 }
+                stylesheets += BugPicker.defaultStyles
             }
         }
 

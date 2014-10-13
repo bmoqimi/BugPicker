@@ -63,6 +63,8 @@ object BugPicker extends JFXApp {
     final val PREFERENCES_KEY_LIBS = "libs"
     final val PREFERENCES_KEY_SOURCES = "sources"
 
+    def defaultStyles = getClass.getResource("/org/opalj/bugpicker/style.css").toExternalForm
+
     var project: Project[URL] = null
     var sources: Seq[File] = Seq.empty
 
@@ -108,7 +110,7 @@ object BugPicker extends JFXApp {
                 )
             }
 
-            stylesheets += getClass.getResource("/org/opalj/bugpicker/style.css").toExternalForm
+            stylesheets += defaultStyles
         }
 
         handleEvent(WindowEvent.WindowShowing) { e: WindowEvent ⇒

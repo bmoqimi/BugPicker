@@ -2,37 +2,32 @@ package org.opalj
 package bugpicker
 
 import scalafx.Includes._
-import scalafx.stage.Stage
-import scalafx.scene.Scene
-import scalafx.scene.layout.BorderPane
-import scalafx.scene.control.Button
-import scalafx.scene.layout.HBox
-import scalafx.geometry.Pos
-import scalafx.geometry.Insets
 import scalafx.event.ActionEvent
-import scalafx.scene.layout.VBox
-import scalafx.scene.web.WebView
-import scalafx.scene.control.Hyperlink
-import java.awt.Desktop
-import java.net.URL
-import javafx.application.HostServices
+import scalafx.stage.WindowEvent
+import scalafx.geometry.Insets
+import scalafx.geometry.Pos
+import scalafx.scene.Scene
+import scalafx.scene.control.Button
 import scalafx.scene.control.Label
+import scalafx.scene.layout.BorderPane
+import scalafx.scene.layout.HBox
+import scalafx.scene.layout.VBox
+import scalafx.stage.Stage
+import scalafx.scene.control.TextArea
 
 class AboutDialog(owner: Stage) extends DialogStage(owner) {
-    final val OPAL_PROJECT = new URL("http://opal-project.de").toExternalForm
+    self ⇒
 
     title = "About BugPicker"
 
     scene = new Scene {
         root = new BorderPane {
             center = new VBox {
-                content = Seq(
-                    new Label {
-                        margin = Insets(20)
-                        text = "The BugPicker is powered by the OPAL (OPen AnaLysis) framework.\n"+
-                            "Visit http://opal-project.de and http://opal-project.de/bugpicker."
-                    }
-                )
+                content = new Label {
+                    text = "The BugPicker is powered by the OPAL (OPen AnaLysis) framework.\n"+
+                        "Visit http://opal-project.de and http://opal-project.de/bugpicker."
+                    margin = Insets(20)
+                }
             }
 
             bottom = new HBox {
@@ -45,5 +40,6 @@ class AboutDialog(owner: Stage) extends DialogStage(owner) {
                 alignment = Pos.CENTER
             }
         }
+        stylesheets += BugPicker.defaultStyles
     }
 }
