@@ -83,6 +83,7 @@ object BugPicker extends JFXApp {
 
                         val reportView = new WebView {
                             id = "reportView"
+                            contextMenuEnabled = false
                         }
                         val sourceTabs = new TabPane {
                             id = "sourceTabs"
@@ -92,6 +93,7 @@ object BugPicker extends JFXApp {
                                 content = new WebView {
                                     id = "sourceView"
                                     engine.loadContent(Messages.APP_STARTED)
+                                    contextMenuEnabled = false
                                 }
                                 closable = false
                             }
@@ -101,6 +103,7 @@ object BugPicker extends JFXApp {
                                 content = new WebView {
                                     id = "byteView"
                                     engine.loadContent(Messages.APP_STARTED)
+                                    contextMenuEnabled = false
                                 }
                                 closable = false
                             }

@@ -22,6 +22,7 @@ object HelpBrowser extends Stage {
                 selectionModel.delegate().selectionMode = SelectionMode.SINGLE
             }
             val browser = new WebView
+            browser.contextMenuEnabled = false
             list.selectionModel.delegate().selectedItemProperty().onChange { (observable, oldValue, newValue) ⇒
                 browser.engine.loadContent(newValue.content)
                 title = s"BugPicker Help - ${newValue.title}"

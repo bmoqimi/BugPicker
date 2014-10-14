@@ -17,35 +17,32 @@ import scalafx.scene.Scene
 
 object ProjectInfoDialog {
     def show(owner: Stage, project: Project[URL], sources: Seq[File]) {
-        val wv = new WebView
-
-        wv.engine.loadContent("<html><body style=\"font: 14px sans-serif;\">"+
-            "<h2>Project statistics</h2>"+
-            statistics(project)+
-            "<h2>Source directories</h2>"+
-            sourceInfo(sources)+
-            "</body></html>")
-
-        val button = new Button {
-            text = "Close"
-            defaultButton = true
-        }
-
         val stage = new DialogStage(owner) {
+            theStage ⇒
             scene = new Scene {
                 root = new BorderPane {
-                    center = wv
+                    center = new WebView {
+                        contextMenuEnabled = false
+                        engine.loadContent("<html><body style=\"font: 14px sans-serif;\">"+
+                            "<h2>Project statistics</h2>"+
+                            statistics(project)+
+                            "<h2>Source directories</h2>"+
+                            sourceInfo(sources)+
+                            "</body></html>")
+                    }
                     bottom = new HBox {
-                        content = button
+                        content = new Button {
+                            text = "Close"
+                            defaultButton = true
+                            onAction = { e: ActionEvent ⇒ theStage.close() }
+                            HBox.setMargin(this, Insets(10))
+                        }
                         alignment = Pos.CENTER
                     }
-                    HBox.setMargin(button, Insets(10))
                 }
                 stylesheets += BugPicker.defaultStyles
             }
         }
-
-        button.onAction = { e: ActionEvent ⇒ stage.close() }
 
         stage.title = "Project info"
         stage.showAndWait

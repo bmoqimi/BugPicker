@@ -75,9 +75,10 @@ object ProjectHelper {
                         top = new Label {
                             text = "The following exceptions occurred while reading the specified files:"
                         }
-                        val wv = new WebView
-                        center = wv
-                        wv.engine.loadContent(message)
+                        center = new WebView {
+                            contextMenuEnabled = false
+                            engine.loadContent(message)
+                        }
                         bottom = new HBox {
                             content = new Button {
                                 id = "Close"
