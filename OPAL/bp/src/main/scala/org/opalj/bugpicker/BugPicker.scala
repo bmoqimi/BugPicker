@@ -75,10 +75,14 @@ object BugPicker extends JFXApp {
         scene = new Scene {
             val theScene = this
             root = new VBox {
+                vgrow = Priority.ALWAYS
+                hgrow = Priority.ALWAYS
                 content = Seq(
                     createMenuBar(),
                     new SplitPane {
                         orientation = Orientation.VERTICAL
+                        vgrow = Priority.ALWAYS
+                        hgrow = Priority.ALWAYS
                         dividerPositions = 0.4
 
                         val reportView = new WebView {
