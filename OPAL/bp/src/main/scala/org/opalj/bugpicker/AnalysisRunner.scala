@@ -44,17 +44,16 @@ object AnalysisRunner extends DeadCodeAnalysis {
         val scene: Scene = stage.scene()
         val sourceView = scene.lookup("#sourceView").get.delegate.asInstanceOf[jWebView]
         val byteView = scene.lookup("#byteView").get.delegate.asInstanceOf[jWebView]
+        val reportView = scene.lookup("#reportView").get.delegate.asInstanceOf[jWebView]
 
         if (project == null) {
-            DialogStage.showMessage("You need to load a project first!", stage)
-            sourceView.engine.loadContent(Messages.LOAD_CLASSES_FIRST)
-            byteView.engine.loadContent(Messages.LOAD_CLASSES_FIRST)
+            DialogStage.showMessage("Error", "You need to load a project first!", stage)
+            reportView.engine.loadContent(Messages.LOAD_CLASSES_FIRST)
             return
         }
 
         val interrupted = BooleanProperty(false)
 
-        val reportView = scene.lookup("#reportView").get.delegate.asInstanceOf[jWebView]
         val tabPane = scene.lookup("#sourceTabs").get.delegate.asInstanceOf[jTabPane]
 
         val progressListView = new ListView[String] {

@@ -79,11 +79,12 @@ object BugPicker extends JFXApp {
                     createMenuBar(),
                     new SplitPane {
                         orientation = Orientation.VERTICAL
-                        dividerPositions = 0.3
+                        dividerPositions = 0.4
 
                         val reportView = new WebView {
                             id = "reportView"
                             contextMenuEnabled = false
+                            engine.loadContent(Messages.APP_STARTED)
                         }
                         val sourceTabs = new TabPane {
                             id = "sourceTabs"
@@ -92,7 +93,6 @@ object BugPicker extends JFXApp {
                                 text = "Source code"
                                 content = new WebView {
                                     id = "sourceView"
-                                    engine.loadContent(Messages.APP_STARTED)
                                     contextMenuEnabled = false
                                 }
                                 closable = false
@@ -102,7 +102,6 @@ object BugPicker extends JFXApp {
                                 text = "Bytecode"
                                 content = new WebView {
                                     id = "byteView"
-                                    engine.loadContent(Messages.APP_STARTED)
                                     contextMenuEnabled = false
                                 }
                                 closable = false
@@ -229,9 +228,9 @@ object BugPicker extends JFXApp {
         val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
         if (results.isDefined && !results.get._1.isEmpty) {
             storePreferences(results.get)
-            sourceView.engine.loadContent(Messages.LOADING_STARTED)
-            byteView.engine.loadContent(Messages.LOADING_STARTED)
-            reportView.engine.loadContent("")
+            sourceView.engine.loadContent("")
+            byteView.engine.loadContent("")
+            reportView.engine.loadContent(Messages.LOADING_STARTED)
             Service {
                 Task[Unit] {
                     val projectAndSources = ProjectHelper.setupProject(results.get, stage)
@@ -240,13 +239,12 @@ object BugPicker extends JFXApp {
                     Platform.runLater {
                         stage.scene().lookup("#sourceTabs-source").disable = sources.isEmpty
                         if (sources.isEmpty) tabPane.selectionModel().select(1)
-                        sourceView.engine.loadContent(Messages.LOADING_FINISHED)
-                        byteView.engine.loadContent(Messages.LOADING_FINISHED)
+                        reportView.engine.loadContent(Messages.LOADING_FINISHED)
                     }
                 }
             }.start
         } else if (results.isDefined && results.get._1.isEmpty) {
-            DialogStage.showMessage("You have not specified any classes to be analyzed!", stage)
+            DialogStage.showMessage("Error", "You have not specified any classes to be analyzed!", stage)
         }
     }
 }

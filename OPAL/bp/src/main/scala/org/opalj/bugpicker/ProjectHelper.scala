@@ -70,6 +70,7 @@ object ProjectHelper {
             pout.flush
             val message = new String(out.toByteArray)
             val dialog = new DialogStage(parentStage) {
+                title = "Error while reading project"
                 scene = new Scene {
                     root = new BorderPane {
                         top = new Label {

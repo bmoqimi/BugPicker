@@ -105,7 +105,7 @@ class DOMNodeClickListener(
             } else {
                 noSourceFound = true
                 val msg = s"Could not find source code for type $className.\nShowing bytecode instead."
-                DialogStage.showMessage(msg, sourceWebview.scene().window())
+                DialogStage.showMessage("Info", msg, sourceWebview.scene().window())
                 sourceWebview.engine.loadContent("")
             }
         }

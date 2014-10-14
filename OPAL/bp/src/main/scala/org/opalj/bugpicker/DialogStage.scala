@@ -33,11 +33,10 @@ class DialogStage(owner: Window) extends Stage {
 
 object DialogStage {
 
-    def showMessage(message: String, owner: Window) {
-        val button = new Button {
-            text = "Close"
-        }
+    def showMessage(theTitle: String, message: String, owner: Window) {
         val stage = new DialogStage(owner) {
+            theStage ⇒
+            title = theTitle
             scene = new Scene {
                 root = new BorderPane {
                     center = new Label {
@@ -45,16 +44,19 @@ object DialogStage {
                         margin = Insets(20)
                     }
                     bottom = new HBox {
-                        content = button
+                        content = new Button {
+                            text = "Close"
+                            defaultButton = true
+                            HBox.setMargin(this, Insets(10))
+                            onAction = { e: ActionEvent ⇒
+                                theStage.close()
+                            }
+                        }
                         alignment = Pos.CENTER
-                        HBox.setMargin(button, Insets(10))
                     }
                 }
                 stylesheets += BugPicker.defaultStyles
             }
-        }
-        button.onAction = { e: ActionEvent ⇒
-            stage.close()
         }
         stage.showAndWait()
     }
