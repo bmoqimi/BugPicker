@@ -42,9 +42,10 @@ import org.opalj.bugpicker.analysis.DeadCodeAnalysis
 import org.opalj.bugpicker.dialogs.DialogStage
 import org.opalj.bugpicker.codeview.AddClickListenersOnLoadListener
 import org.opalj.bugpicker.dialogs.ProgressManagementDialog
+import org.opalj.bugpicker.analysis.AnalysisParameters
 
 object AnalysisRunner extends DeadCodeAnalysis {
-    def runAnalysis(stage: Stage, project: Project[URL], sources: Seq[File]) {
+    def runAnalysis(stage: Stage, project: Project[URL], sources: Seq[File], parameters: AnalysisParameters) {
         val scene: Scene = stage.scene()
         val sourceView = scene.lookup("#sourceView").get.delegate.asInstanceOf[jWebView]
         val byteView = scene.lookup("#byteView").get.delegate.asInstanceOf[jWebView]
@@ -73,7 +74,7 @@ object AnalysisRunner extends DeadCodeAnalysis {
 
         val doc = new ObjectProperty[xmlNode]
 
-        val worker = new AnalysisWorker(doc, project, initProgressManagement)
+        val worker = new AnalysisWorker(doc, project, parameters, initProgressManagement)
         worker.handleEvent(WorkerStateEvent.ANY)(new WorkerFinishedListener(project, sources, doc, reportView, sourceView, byteView, tabPane))
 
         worker.start

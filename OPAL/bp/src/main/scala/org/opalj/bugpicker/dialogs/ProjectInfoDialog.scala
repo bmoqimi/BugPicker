@@ -29,7 +29,7 @@ object ProjectInfoDialog {
             return
         }
 
-        val preferences = BugPicker.loadPreferences().getOrElse(LoadedFiles())
+        val preferences = BugPicker.loadFilesFromPreferences().getOrElse(LoadedFiles())
 
         val html = report(project, preferences)
 

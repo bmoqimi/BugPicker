@@ -321,6 +321,6 @@ class LoadProjectDialog(preferences: Option[LoadedFiles]) extends Stage {
 }
 
 case class LoadedFiles(
-    val projectFiles: Seq[File] = Seq.empty,
-    val projectSources: Seq[File] = Seq.empty,
-    val libraries: Seq[File] = Seq.empty)
+    projectFiles: Seq[File] = Seq.empty,
+    projectSources: Seq[File] = Seq.empty,
+    libraries: Seq[File] = Seq.empty)

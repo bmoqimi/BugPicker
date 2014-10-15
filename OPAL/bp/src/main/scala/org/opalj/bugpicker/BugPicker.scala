@@ -61,6 +61,9 @@ import org.opalj.bugpicker.dialogs.ProjectInfoDialog
 import org.opalj.bugpicker.dialogs.LoadProjectDialog
 import org.opalj.bugpicker.dialogs.HelpBrowser
 import org.opalj.bugpicker.dialogs.LoadedFiles
+import org.opalj.bugpicker.analysis.DeadCodeAnalysis
+import org.opalj.bugpicker.analysis.AnalysisParameters
+import org.opalj.bugpicker.dialogs.AnalysisParametersDialog
 
 object BugPicker extends JFXApp {
     final val PREFERENCES_KEY = "/org/opalj/bugpicker"
@@ -68,6 +71,9 @@ object BugPicker extends JFXApp {
     final val PREFERENCES_KEY_CLASSES = "classes"
     final val PREFERENCES_KEY_LIBS = "libs"
     final val PREFERENCES_KEY_SOURCES = "sources"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_FACTOR = "maxEvalFactor"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_TIME = "maxEvalTime"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_CARDINALITY_OF_INTEGER_RANGES = "maxCardinalityOfIntegerRanges"
 
     def defaultStyles = getClass.getResource("/org/opalj/bugpicker/style.css").toExternalForm
 
@@ -177,7 +183,23 @@ object BugPicker extends JFXApp {
                             text = "_Run"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+R")
-                            onAction = { e: ActionEvent ⇒ AnalysisRunner.runAnalysis(stage, project, sources) }
+                            onAction = { e: ActionEvent ⇒
+                                val parameters = loadParametersFromPreferences()
+                                AnalysisRunner.runAnalysis(stage, project, sources, parameters)
+                            }
+                        },
+                        new MenuItem {
+                            text = "_Preferences"
+                            mnemonicParsing = true
+                            accelerator = KeyCombination("Shortcut+P")
+                            onAction = { e: ActionEvent ⇒
+                                val parameters = loadParametersFromPreferences
+                                val dialog = new AnalysisParametersDialog(stage)
+                                val newParameters = dialog.show(parameters)
+                                if (newParameters.isDefined) {
+                                    storeParametersToPreferences(newParameters.get)
+                                }
+                            }
                         }
                     )
                 },
@@ -203,7 +225,26 @@ object BugPicker extends JFXApp {
 
     val sep = File.pathSeparator
 
-    def storePreferences(loadedFiles: LoadedFiles) {
+    def loadParametersFromPreferences(): AnalysisParameters = {
+        val maxEvalFactor = PREFERENCES.getDouble(
+            PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_FACTOR,
+            DeadCodeAnalysis.defaultMaxEvalFactor)
+        val maxEvalTime = PREFERENCES.getInt(
+            PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_TIME,
+            DeadCodeAnalysis.defaultMaxEvalTime)
+        val maxCardinalityOfIntegerRanges = PREFERENCES.getInt(
+            PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_CARDINALITY_OF_INTEGER_RANGES,
+            DeadCodeAnalysis.defaultMaxCardinalityOfIntegerRanges)
+        new AnalysisParameters(maxEvalTime, maxEvalFactor, maxCardinalityOfIntegerRanges)
+    }
+
+    def storeParametersToPreferences(parameters: AnalysisParameters) {
+        PREFERENCES.putInt(PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_TIME, parameters.maxEvalTime)
+        PREFERENCES.putDouble(PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_FACTOR, parameters.maxEvalFactor)
+        PREFERENCES.putInt(PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_CARDINALITY_OF_INTEGER_RANGES, parameters.maxCardinalityOfIntegerRanges)
+    }
+
+    def storeFilesToPreferences(loadedFiles: LoadedFiles) {
         def filesToPref(key: String, files: Seq[File]) =
             PREFERENCES.put(key, files.mkString(sep))
 
@@ -212,7 +253,7 @@ object BugPicker extends JFXApp {
         filesToPref(PREFERENCES_KEY_LIBS, loadedFiles.libraries)
     }
 
-    def loadPreferences(): Option[LoadedFiles] = {
+    def loadFilesFromPreferences(): Option[LoadedFiles] = {
         def prefAsFiles(key: String): Seq[File] =
             PREFERENCES.get(key, "").split(sep).filterNot(_.isEmpty).map(new File(_))
 
@@ -225,7 +266,7 @@ object BugPicker extends JFXApp {
     }
 
     private def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
-        val preferences = loadPreferences()
+        val preferences = loadFilesFromPreferences()
         val dia = new LoadProjectDialog(preferences)
         val results = dia.show(stage)
         val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
@@ -233,7 +274,7 @@ object BugPicker extends JFXApp {
         val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
         val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
         if (results.isDefined && !results.get.projectFiles.isEmpty) {
-            storePreferences(results.get)
+            storeFilesToPreferences(results.get)
             sourceView.engine.loadContent("")
             byteView.engine.loadContent("")
             reportView.engine.loadContent(Messages.LOADING_STARTED)
