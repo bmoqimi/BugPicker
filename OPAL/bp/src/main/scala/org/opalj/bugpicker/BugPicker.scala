@@ -60,6 +60,7 @@ import org.opalj.bugpicker.dialogs.DialogStage
 import org.opalj.bugpicker.dialogs.ProjectInfoDialog
 import org.opalj.bugpicker.dialogs.LoadProjectDialog
 import org.opalj.bugpicker.dialogs.HelpBrowser
+import org.opalj.bugpicker.dialogs.LoadedFiles
 
 object BugPicker extends JFXApp {
     final val PREFERENCES_KEY = "/org/opalj/bugpicker"
@@ -202,34 +203,36 @@ object BugPicker extends JFXApp {
 
     val sep = File.pathSeparator
 
-    def storePreferences(loadedFiles: (List[File], List[File], List[File])) {
-        def filesToPref(key: String, files: List[File]) =
+    def storePreferences(loadedFiles: LoadedFiles) {
+        def filesToPref(key: String, files: Seq[File]) =
             PREFERENCES.put(key, files.mkString(sep))
 
-        filesToPref(PREFERENCES_KEY_CLASSES, loadedFiles._1)
-        filesToPref(PREFERENCES_KEY_LIBS, loadedFiles._2)
-        filesToPref(PREFERENCES_KEY_SOURCES, loadedFiles._3)
+        filesToPref(PREFERENCES_KEY_CLASSES, loadedFiles.projectFiles)
+        filesToPref(PREFERENCES_KEY_SOURCES, loadedFiles.projectSources)
+        filesToPref(PREFERENCES_KEY_LIBS, loadedFiles.libraries)
     }
 
-    def loadPreferences(): (Seq[File], Seq[File], Seq[File]) = {
+    def loadPreferences(): Option[LoadedFiles] = {
         def prefAsFiles(key: String): Seq[File] =
             PREFERENCES.get(key, "").split(sep).filterNot(_.isEmpty).map(new File(_))
 
+        if (!PREFERENCES.nodeExists(""))
+            return None
         val classes = prefAsFiles(PREFERENCES_KEY_CLASSES)
         val libs = prefAsFiles(PREFERENCES_KEY_LIBS)
         val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
-        (classes, libs, sources)
+        Some(LoadedFiles(classes, libs, sources))
     }
 
     private def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
-        val (preloadJars, preloadLibs, preloadSources) = loadPreferences()
-        val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
+        val preferences = loadPreferences()
+        val dia = new LoadProjectDialog(preferences)
         val results = dia.show(stage)
         val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
         val sourceView = stage.scene().lookup("#sourceView").asInstanceOf[jWebView]
         val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
         val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
-        if (results.isDefined && !results.get._1.isEmpty) {
+        if (results.isDefined && !results.get.projectFiles.isEmpty) {
             storePreferences(results.get)
             sourceView.engine.loadContent("")
             byteView.engine.loadContent("")
@@ -246,7 +249,7 @@ object BugPicker extends JFXApp {
                     }
                 }
             }.start
-        } else if (results.isDefined && results.get._1.isEmpty) {
+        } else if (results.isDefined && results.get.projectFiles.isEmpty) {
             DialogStage.showMessage("Error", "You have not specified any classes to be analyzed!", stage)
         }
     }

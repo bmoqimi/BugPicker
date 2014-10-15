@@ -21,13 +21,14 @@ import scalafx.event.ActionEvent
 import scala.language.implicitConversions
 import scalafx.scene.Scene
 import org.opalj.bugpicker.dialogs.DialogStage
+import org.opalj.bugpicker.dialogs.LoadedFiles
 
 object ProjectHelper {
-    def setupProject(loadedFiles: (List[File], List[File], List[File]), parentStage: Stage): (Project[URL], Seq[File]) = {
+    def setupProject(loadedFiles: LoadedFiles, parentStage: Stage): (Project[URL], Seq[File]) = {
 
-        val files = loadedFiles._1
-        val libs = loadedFiles._2
-        val sources = loadedFiles._3
+        val files = loadedFiles.projectFiles
+        val sources = loadedFiles.projectSources
+        val libs = loadedFiles.libraries
         val project = setupProject(files, libs, parentStage)
         (project, sources)
     }

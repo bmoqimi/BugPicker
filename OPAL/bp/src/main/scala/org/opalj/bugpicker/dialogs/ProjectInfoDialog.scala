@@ -24,9 +24,14 @@ object ProjectInfoDialog {
     def toUL(files: Seq[File]): String = files.map(_.getAbsolutePath).mkString("<ul><li>", "</li><li>", "</li></ul>")
 
     def show(owner: Stage, project: Project[URL], sources: Seq[File]) {
-        val (jarDirs, libDirs, sourceDirs) = BugPicker.loadPreferences()
+        if (project == null) {
+            DialogStage.showMessage("Error", "You need to load a project before you can inspect it.", owner)
+            return
+        }
 
-        val html = report(project, jarDirs, libDirs, sourceDirs)
+        val preferences = BugPicker.loadPreferences().getOrElse(LoadedFiles())
+
+        val html = report(project, preferences)
 
         val stage = new DialogStage(owner) {
             theStage ⇒
@@ -58,7 +63,7 @@ object ProjectInfoDialog {
         if (project == null) ""
         else project.statistics.toList.map(e ⇒ s"<li>${e._1}: ${e._2}</li>").mkString("<ul>", "", "</ul>")
 
-    private def report(project: Project[URL], jarDirs: Seq[File], libDirs: Seq[File], sourceDirs: Seq[File]): String =
+    private def report(project: Project[URL], preferences: LoadedFiles): String =
         <html>
             <head>
                 <style type="text/css"><![CDATA[
@@ -75,11 +80,11 @@ ul, li {
                 <h2>Project statistics</h2>
                 <ul>{ project.statistics.toList.map(e ⇒ <li>{ e._1 }: { e._2 }</li>) }</ul>
                 <h2>Loaded jar files and directories</h2>
-                <ul>{ jarDirs.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
-                <h2>Loaded libraries</h2>
-                <ul>{ libDirs.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
+                <ul>{ preferences.projectFiles.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
                 <h2>Loaded source directories</h2>
-                <ul>{ sourceDirs.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
+                <ul>{ preferences.projectSources.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
+                <h2>Loaded libraries</h2>
+                <ul>{ preferences.libraries.map(d ⇒ <li>{ d.getAbsolutePath }</li>) }</ul>
             </body>
         </html>.toString
 }
