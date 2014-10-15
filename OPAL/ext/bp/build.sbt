@@ -16,14 +16,9 @@ javaOptions ++= Seq("-source", "1.7", "-target", "1.7")
 
 jfxSettings
 
-unmanagedJars in Compile += Attributed.blank(file(System.getenv("JAVA_HOME") + "/jre/lib/jfxrt.jar"))
+JFX.addJfxrtToClasspath := true
 
 JFX.mainClass := Some("org.opalj.bugpicker.BugPicker")
-
-// We want to use different VM settings for OPAL
-fork in run := true
-
-javaOptions in run := Seq("-Xmx2G", "-Xms1024m", "-XX:NewRatio=1", "-XX:SurvivorRatio=8", "-XX:+UseParallelGC", "-XX:+AggressiveOpts", "-Xnoclassgc")
 
 assemblySettings
 
