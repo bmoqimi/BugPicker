@@ -62,50 +62,158 @@ import org.opalj.bugpicker.dialogs.LoadedFiles
 import org.opalj.bugpicker.analysis.DeadCodeAnalysis
 import org.opalj.bugpicker.analysis.AnalysisParameters
 import org.opalj.bugpicker.dialogs.AnalysisParametersDialog
+import javafx.application.Application
 
-object BugPicker extends JFXApp {
-    final val PREFERENCES_KEY = "/org/opalj/bugpicker"
-    final val PREFERENCES = Preferences.userRoot().node(PREFERENCES_KEY)
-    final val PREFERENCES_KEY_CLASSES = "classes"
-    final val PREFERENCES_KEY_LIBS = "libs"
-    final val PREFERENCES_KEY_SOURCES = "sources"
-    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_FACTOR = "maxEvalFactor"
-    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_TIME = "maxEvalTime"
-    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_CARDINALITY_OF_INTEGER_RANGES = "maxCardinalityOfIntegerRanges"
-
-    def defaultStyles = getClass.getResource("/org/opalj/bugpicker/style.css").toExternalForm
+class BugPicker extends Application {
 
     var project: Project[URL] = null
     var sources: Seq[File] = Seq.empty
 
-    val sourceView: WebView = new WebView {
-        contextMenuEnabled = false
-    }
-    val byteView: WebView = new WebView {
-        contextMenuEnabled = false
-    }
-    val reportView: WebView = new WebView {
-        contextMenuEnabled = false
-        engine.loadContent(Messages.APP_STARTED)
-    }
-    val tabPane: TabPane = new TabPane {
-        this += new Tab {
-            text = "Source code"
-            content = sourceView
-            closable = false
-        }
-        this += new Tab {
-            text = "Bytecode"
-            content = byteView
-            closable = false
-        }
-    }
+    override def start(jStage: javafx.stage.Stage) {
+        val stage: Stage = jStage
 
-    stage = new PrimaryStage {
-        val theStage = this
-        title = "BugPicker"
+        val sourceView: WebView = new WebView {
+            contextMenuEnabled = false
+        }
+        val byteView: WebView = new WebView {
+            contextMenuEnabled = false
+        }
+        val reportView: WebView = new WebView {
+            contextMenuEnabled = false
+            engine.loadContent(Messages.APP_STARTED)
+        }
+        val tabPane: TabPane = new TabPane {
+            this += new Tab {
+                text = "Source code"
+                content = sourceView
+                closable = false
+            }
+            this += new Tab {
+                text = "Bytecode"
+                content = byteView
+                closable = false
+            }
+        }
 
-        scene = new Scene {
+        def maximizeOnCurrentScreen(stage: Stage) {
+            val currentScreen = Screen.primary
+            val currentScreenDimensions = currentScreen.getVisualBounds()
+            stage.x = currentScreenDimensions.minX
+            stage.y = currentScreenDimensions.minY
+            stage.width = currentScreenDimensions.width
+            stage.height = currentScreenDimensions.height
+        }
+
+        def showURL(url: String): Unit = getHostServices.showDocument(url)
+
+        val aboutDialog = new AboutDialog(stage, showURL)
+
+        def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
+            val preferences = BugPicker.loadFilesFromPreferences()
+            val dia = new LoadProjectDialog(preferences)
+            val results = dia.show(stage)
+            if (results.isDefined && !results.get.projectFiles.isEmpty) {
+                BugPicker.storeFilesToPreferences(results.get)
+                sourceView.engine.loadContent("")
+                byteView.engine.loadContent("")
+                reportView.engine.loadContent(Messages.LOADING_STARTED)
+                Service {
+                    Task[Unit] {
+                        val projectAndSources = ProjectHelper.setupProject(results.get, stage)
+                        project = projectAndSources._1
+                        sources = projectAndSources._2
+                        Platform.runLater {
+                            tabPane.tabs(0).disable = sources.isEmpty
+                            if (sources.isEmpty) tabPane.selectionModel().select(1)
+                            reportView.engine.loadContent(Messages.LOADING_FINISHED)
+                        }
+                    }
+                }.start
+            } else if (results.isDefined && results.get.projectFiles.isEmpty) {
+                DialogStage.showMessage("Error", "You have not specified any classes to be analyzed!", stage)
+            }
+        }
+
+        def createMenuBar(): MenuBar = {
+            new MenuBar {
+                menus = Seq(
+                    new Menu {
+                        text = "_File"
+                        mnemonicParsing = true
+                        items = Seq(
+                            new MenuItem {
+                                text = "L_oad"
+                                mnemonicParsing = true
+                                accelerator = KeyCombination("Shortcut+O")
+                                onAction = loadProjectAction()
+                            },
+                            new MenuItem {
+                                text = "_Project info"
+                                mnemonicParsing = true
+                                accelerator = KeyCombination("Shortcut+I")
+                                onAction = { e: ActionEvent ⇒ ProjectInfoDialog.show(stage, project, sources) }
+                            },
+                            new SeparatorMenuItem,
+                            new MenuItem {
+                                text = "_Quit"
+                                mnemonicParsing = true
+                                accelerator = KeyCombination("Shortcut+Q")
+                                onAction = { e: ActionEvent ⇒ stage.close }
+                            }
+                        )
+                    },
+                    new Menu {
+                        text = "_Analysis"
+                        mnemonicParsing = true
+                        items = Seq(
+                            new MenuItem {
+                                text = "_Run"
+                                mnemonicParsing = true
+                                accelerator = KeyCombination("Shortcut+R")
+                                onAction = { e: ActionEvent ⇒
+                                    val parameters = BugPicker.loadParametersFromPreferences()
+                                    AnalysisRunner.runAnalysis(stage, project, sources, parameters,
+                                        sourceView, byteView, reportView, tabPane)
+                                }
+                            },
+                            new MenuItem {
+                                text = "_Preferences"
+                                mnemonicParsing = true
+                                accelerator = KeyCombination("Shortcut+P")
+                                onAction = { e: ActionEvent ⇒
+                                    val parameters = BugPicker.loadParametersFromPreferences
+                                    val dialog = new AnalysisParametersDialog(stage)
+                                    val newParameters = dialog.show(parameters)
+                                    if (newParameters.isDefined) {
+                                        BugPicker.storeParametersToPreferences(newParameters.get)
+                                    }
+                                }
+                            }
+                        )
+                    },
+                    new Menu {
+                        text = "_Help"
+                        mnemonicParsing = true
+                        items = Seq(
+                            new MenuItem {
+                                text = "_Browse Help"
+                                mnemonicParsing = true
+                                accelerator = new KeyCodeCombination(KeyCode.F1)
+                                onAction = { e: ActionEvent ⇒ HelpBrowser.show() }
+                            },
+                            new MenuItem {
+                                text = "_About"
+                                mnemonicParsing = true
+                                onAction = { e: ActionEvent ⇒ aboutDialog.showAndWait() }
+                            }
+                        )
+                    })
+            }
+        }
+
+        stage.title = "BugPicker"
+
+        stage.scene = new Scene {
             val theScene = this
             root = new VBox {
                 vgrow = Priority.ALWAYS
@@ -123,101 +231,28 @@ object BugPicker extends JFXApp {
                 )
             }
 
-            stylesheets += defaultStyles
+            stylesheets += BugPicker.defaultStyles
         }
 
-        handleEvent(WindowEvent.WindowShowing) { e: WindowEvent ⇒
-            maximizeOnCurrentScreen(this)
+        stage.handleEvent(WindowEvent.WindowShowing) { e: WindowEvent ⇒
+            maximizeOnCurrentScreen(stage)
         }
-    }
 
-    def maximizeOnCurrentScreen(stage: Stage) {
-        val currentScreen = Screen.primary
-        val currentScreenDimensions = currentScreen.getVisualBounds()
-        stage.x = currentScreenDimensions.minX
-        stage.y = currentScreenDimensions.minY
-        stage.width = currentScreenDimensions.width
-        stage.height = currentScreenDimensions.height
+        stage.show()
     }
+}
 
-    val aboutDialog = new AboutDialog(stage)
+object BugPicker {
+    final val PREFERENCES_KEY = "/org/opalj/bugpicker"
+    final val PREFERENCES = Preferences.userRoot().node(PREFERENCES_KEY)
+    final val PREFERENCES_KEY_CLASSES = "classes"
+    final val PREFERENCES_KEY_LIBS = "libs"
+    final val PREFERENCES_KEY_SOURCES = "sources"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_FACTOR = "maxEvalFactor"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_EVAL_TIME = "maxEvalTime"
+    final val PREFERENCES_KEY_ANALYSIS_PARAMETER_MAX_CARDINALITY_OF_INTEGER_RANGES = "maxCardinalityOfIntegerRanges"
 
-    private def createMenuBar(): MenuBar = {
-        new MenuBar {
-            menus = Seq(
-                new Menu {
-                    text = "_File"
-                    mnemonicParsing = true
-                    items = Seq(
-                        new MenuItem {
-                            text = "L_oad"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+O")
-                            onAction = loadProjectAction()
-                        },
-                        new MenuItem {
-                            text = "_Project info"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+I")
-                            onAction = { e: ActionEvent ⇒ ProjectInfoDialog.show(stage, project, sources) }
-                        },
-                        new SeparatorMenuItem,
-                        new MenuItem {
-                            text = "_Quit"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+Q")
-                            onAction = { e: ActionEvent ⇒ stage.close }
-                        }
-                    )
-                },
-                new Menu {
-                    text = "_Analysis"
-                    mnemonicParsing = true
-                    items = Seq(
-                        new MenuItem {
-                            text = "_Run"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+R")
-                            onAction = { e: ActionEvent ⇒
-                                val parameters = loadParametersFromPreferences()
-                                AnalysisRunner.runAnalysis(stage, project, sources, parameters,
-                                    sourceView, byteView, reportView, tabPane)
-                            }
-                        },
-                        new MenuItem {
-                            text = "_Preferences"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+P")
-                            onAction = { e: ActionEvent ⇒
-                                val parameters = loadParametersFromPreferences
-                                val dialog = new AnalysisParametersDialog(stage)
-                                val newParameters = dialog.show(parameters)
-                                if (newParameters.isDefined) {
-                                    storeParametersToPreferences(newParameters.get)
-                                }
-                            }
-                        }
-                    )
-                },
-                new Menu {
-                    text = "_Help"
-                    mnemonicParsing = true
-                    items = Seq(
-                        new MenuItem {
-                            text = "_Browse Help"
-                            mnemonicParsing = true
-                            accelerator = new KeyCodeCombination(KeyCode.F1)
-                            onAction = { e: ActionEvent ⇒ HelpBrowser.show() }
-                        },
-                        new MenuItem {
-                            text = "_About"
-                            mnemonicParsing = true
-                            onAction = { e: ActionEvent ⇒ aboutDialog.showAndWait() }
-                        }
-                    )
-                })
-        }
-    }
+    def defaultStyles = getClass.getResource("/org/opalj/bugpicker/style.css").toExternalForm
 
     val sep = File.pathSeparator
 
@@ -260,30 +295,7 @@ object BugPicker extends JFXApp {
         val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
         Some(LoadedFiles(projectFiles = classes, projectSources = sources, libraries = libs))
     }
-
-    private def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
-        val preferences = loadFilesFromPreferences()
-        val dia = new LoadProjectDialog(preferences)
-        val results = dia.show(stage)
-        if (results.isDefined && !results.get.projectFiles.isEmpty) {
-            storeFilesToPreferences(results.get)
-            sourceView.engine.loadContent("")
-            byteView.engine.loadContent("")
-            reportView.engine.loadContent(Messages.LOADING_STARTED)
-            Service {
-                Task[Unit] {
-                    val projectAndSources = ProjectHelper.setupProject(results.get, stage)
-                    project = projectAndSources._1
-                    sources = projectAndSources._2
-                    Platform.runLater {
-                        tabPane.tabs(0).disable = sources.isEmpty
-                        if (sources.isEmpty) tabPane.selectionModel().select(1)
-                        reportView.engine.loadContent(Messages.LOADING_FINISHED)
-                    }
-                }
-            }.start
-        } else if (results.isDefined && results.get.projectFiles.isEmpty) {
-            DialogStage.showMessage("Error", "You have not specified any classes to be analyzed!", stage)
-        }
+    def main(args: Array[String]) {
+        Application.launch(classOf[BugPicker], args: _*)
     }
 }

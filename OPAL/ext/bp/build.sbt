@@ -12,8 +12,6 @@ scalacOptions in (Compile, doc) ++= Opts.doc.title("OPAL - BugPicker")
 
 libraryDependencies += "org.scalafx"  %% "scalafx"   % "1.0.0-R8"
 
-javaOptions ++= Seq("-source", "1.7", "-target", "1.7")
-
 jfxSettings
 
 JFX.addJfxrtToClasspath := true

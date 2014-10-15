@@ -15,8 +15,9 @@ import scalafx.scene.layout.BorderPane
 import scalafx.scene.layout.HBox
 import scalafx.scene.layout.VBox
 import scalafx.stage.Stage
+import scalafx.scene.control.Hyperlink
 
-class AboutDialog(owner: Stage) extends DialogStage(owner) {
+class AboutDialog(owner: Stage, showUrl: String ⇒ Unit) extends DialogStage(owner) {
     self ⇒
 
     title = "About BugPicker"
@@ -24,11 +25,29 @@ class AboutDialog(owner: Stage) extends DialogStage(owner) {
     scene = new Scene {
         root = new BorderPane {
             center = new VBox {
-                content = new Label {
-                    text = "The BugPicker is powered by the OPAL (OPen AnaLysis) framework.\n"+
-                        "Visit http://opal-project.de and http://opal-project.de/bugpicker."
-                    margin = Insets(20)
-                }
+                margin = Insets(20)
+                alignment = Pos.TOP_LEFT
+                content = Seq(
+                    new Label("The BugPicker is powered by the OPAL (OPen AnaLysis) framework."),
+                    new HBox {
+                        alignment = Pos.BASELINE_LEFT
+                        content = Seq(
+                            new Label("Visit "),
+                            new Hyperlink {
+                                text = "the OPAL project"
+                                onAction = { e: ActionEvent ⇒
+                                    showUrl("http://opal-project.de")
+                                }
+                            },
+                            new Label(" and "),
+                            new Hyperlink {
+                                text = "the BugPicker project"
+                                onAction = { e: ActionEvent ⇒
+                                    showUrl("http://opal-project.de/bugpicker")
+                                }
+                            }
+                        )
+                    })
             }
 
             bottom = new HBox {
