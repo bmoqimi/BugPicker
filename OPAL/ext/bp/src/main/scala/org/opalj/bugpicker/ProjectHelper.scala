@@ -84,16 +84,15 @@ object ProjectHelper {
                         }
                         bottom = new HBox {
                             content = new Button {
-                                id = "Close"
                                 text = "Close"
                                 padding = Insets(5, 10, 5, 10)
+                                onAction = { e: ActionEvent ⇒
+                                    close()
+                                }
                             }
                         }
                     }
                 }
-            }
-            dialog.scene().lookup("#Close").asInstanceOf[javafx.scene.control.Button].onAction = { e: ActionEvent ⇒
-                dialog.close()
             }
             dialog.showAndWait()
         }

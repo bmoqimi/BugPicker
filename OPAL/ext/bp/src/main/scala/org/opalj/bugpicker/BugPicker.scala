@@ -31,8 +31,6 @@ import java.io.File
 import scalafx.concurrent.Task
 import scalafx.concurrent.Service
 import javafx.concurrent.{ Service ⇒ jService, Task ⇒ jTask }
-import javafx.scene.web.{ WebView ⇒ jWebView }
-import javafx.scene.control.{ TabPane ⇒ jTabPane }
 import scalafx.application.Platform
 import org.opalj.ai.debug.XHTML
 import scalafx.scene.layout.BorderPane
@@ -80,6 +78,29 @@ object BugPicker extends JFXApp {
     var project: Project[URL] = null
     var sources: Seq[File] = Seq.empty
 
+    val sourceView: WebView = new WebView {
+        contextMenuEnabled = false
+    }
+    val byteView: WebView = new WebView {
+        contextMenuEnabled = false
+    }
+    val reportView: WebView = new WebView {
+        contextMenuEnabled = false
+        engine.loadContent(Messages.APP_STARTED)
+    }
+    val tabPane: TabPane = new TabPane {
+        this += new Tab {
+            text = "Source code"
+            content = sourceView
+            closable = false
+        }
+        this += new Tab {
+            text = "Bytecode"
+            content = byteView
+            closable = false
+        }
+    }
+
     stage = new PrimaryStage {
         val theStage = this
         title = "BugPicker"
@@ -97,33 +118,7 @@ object BugPicker extends JFXApp {
                         hgrow = Priority.ALWAYS
                         dividerPositions = 0.4
 
-                        val reportView = new WebView {
-                            id = "reportView"
-                            contextMenuEnabled = false
-                            engine.loadContent(Messages.APP_STARTED)
-                        }
-                        val sourceTabs = new TabPane {
-                            id = "sourceTabs"
-                            this += new Tab {
-                                id = "sourceTabs-source"
-                                text = "Source code"
-                                content = new WebView {
-                                    id = "sourceView"
-                                    contextMenuEnabled = false
-                                }
-                                closable = false
-                            }
-                            this += new Tab {
-                                id = "sourceTabs-byte"
-                                text = "Bytecode"
-                                content = new WebView {
-                                    id = "byteView"
-                                    contextMenuEnabled = false
-                                }
-                                closable = false
-                            }
-                        }
-                        items ++= Seq(reportView, sourceTabs)
+                        items ++= Seq(reportView, tabPane)
                     }
                 )
             }
@@ -185,7 +180,8 @@ object BugPicker extends JFXApp {
                             accelerator = KeyCombination("Shortcut+R")
                             onAction = { e: ActionEvent ⇒
                                 val parameters = loadParametersFromPreferences()
-                                AnalysisRunner.runAnalysis(stage, project, sources, parameters)
+                                AnalysisRunner.runAnalysis(stage, project, sources, parameters,
+                                    sourceView, byteView, reportView, tabPane)
                             }
                         },
                         new MenuItem {
@@ -269,10 +265,6 @@ object BugPicker extends JFXApp {
         val preferences = loadFilesFromPreferences()
         val dia = new LoadProjectDialog(preferences)
         val results = dia.show(stage)
-        val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
-        val sourceView = stage.scene().lookup("#sourceView").asInstanceOf[jWebView]
-        val byteView = stage.scene().lookup("#byteView").asInstanceOf[jWebView]
-        val tabPane = stage.scene().lookup("#sourceTabs").asInstanceOf[jTabPane]
         if (results.isDefined && !results.get.projectFiles.isEmpty) {
             storeFilesToPreferences(results.get)
             sourceView.engine.loadContent("")
@@ -284,7 +276,7 @@ object BugPicker extends JFXApp {
                     project = projectAndSources._1
                     sources = projectAndSources._2
                     Platform.runLater {
-                        stage.scene().lookup("#sourceTabs-source").disable = sources.isEmpty
+                        tabPane.tabs(0).disable = sources.isEmpty
                         if (sources.isEmpty) tabPane.selectionModel().select(1)
                         reportView.engine.loadContent(Messages.LOADING_FINISHED)
                     }

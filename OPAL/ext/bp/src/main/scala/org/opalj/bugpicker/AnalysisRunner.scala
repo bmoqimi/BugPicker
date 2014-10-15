@@ -12,8 +12,6 @@ import javafx.beans.value.ObservableValue
 import javafx.concurrent.{ Service ⇒ jService }
 import javafx.concurrent.{ Task ⇒ jTask }
 import javafx.concurrent.Worker.State
-import javafx.scene.control.{ TabPane ⇒ jTabPane }
-import javafx.scene.web.{ WebView ⇒ jWebView }
 import scalafx.Includes._
 import scalafx.application.Platform
 import scalafx.beans.binding.NumberBinding.sfxNumberBinding2jfx
@@ -43,14 +41,13 @@ import org.opalj.bugpicker.dialogs.DialogStage
 import org.opalj.bugpicker.codeview.AddClickListenersOnLoadListener
 import org.opalj.bugpicker.dialogs.ProgressManagementDialog
 import org.opalj.bugpicker.analysis.AnalysisParameters
+import scalafx.scene.control.TabPane
+import scalafx.scene.web.WebView
 
 object AnalysisRunner extends DeadCodeAnalysis {
-    def runAnalysis(stage: Stage, project: Project[URL], sources: Seq[File], parameters: AnalysisParameters) {
+    def runAnalysis(stage: Stage, project: Project[URL], sources: Seq[File], parameters: AnalysisParameters,
+                    sourceView: WebView, byteView: WebView, reportView: WebView, tabPane: TabPane) {
         val scene: Scene = stage.scene()
-        val sourceView = scene.lookup("#sourceView").get.delegate.asInstanceOf[jWebView]
-        val byteView = scene.lookup("#byteView").get.delegate.asInstanceOf[jWebView]
-        val reportView = scene.lookup("#reportView").get.delegate.asInstanceOf[jWebView]
-
         if (project == null) {
             DialogStage.showMessage("Error", "You need to load a project first!", stage)
             reportView.engine.loadContent(Messages.LOAD_CLASSES_FIRST)
@@ -58,8 +55,6 @@ object AnalysisRunner extends DeadCodeAnalysis {
         }
 
         val interrupted = BooleanProperty(false)
-
-        val tabPane = scene.lookup("#sourceTabs").get.delegate.asInstanceOf[jTabPane]
 
         val progressListView = new ListView[String] {
             prefHeight = (Runtime.getRuntime().availableProcessors() + 2) * 24 + 2
@@ -86,10 +81,10 @@ object AnalysisRunner extends DeadCodeAnalysis {
             project: Project[URL],
             sources: Seq[File],
             doc: ObjectProperty[xmlNode],
-            reportView: jWebView,
-            sourceView: jWebView,
-            byteView: jWebView,
-            tabPane: jTabPane) extends Function1[WorkerStateEvent, Unit] {
+            reportView: WebView,
+            sourceView: WebView,
+            byteView: WebView,
+            tabPane: TabPane) extends Function1[WorkerStateEvent, Unit] {
         override def apply(event: WorkerStateEvent): Unit = {
             event.eventType match {
                 case WorkerStateEvent.WORKER_STATE_SUCCEEDED ⇒ {

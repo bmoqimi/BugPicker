@@ -18,6 +18,9 @@ object BugPickerBuild extends Build {
 		Seq(libraryDependencies ++= Seq(
 			"de.opal-project" % "abstract-interpretation-framework_2.11" % "0.0.1-SNAPSHOT",
 			"de.opal-project" % "bytecode-disassembler_2.11" % "0.1.0-SNAPSHOT"
+		)) ++
+		Seq(resolvers ++= Seq(
+			"Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 		))
 	
 	def getScalariformPreferences(dir: File) = PreferencesImporterExporter.loadPreferences(
