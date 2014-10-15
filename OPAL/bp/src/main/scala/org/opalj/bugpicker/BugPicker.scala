@@ -151,13 +151,7 @@ object BugPicker extends JFXApp {
                             text = "L_oad"
                             mnemonicParsing = true
                             accelerator = KeyCombination("Shortcut+O")
-                            onAction = loadProjectAction(usePreferences = false)
-                        },
-                        new MenuItem {
-                            text = "_Load last project"
-                            mnemonicParsing = true
-                            accelerator = KeyCombination("Shortcut+L")
-                            onAction = loadProjectAction(usePreferences = true)
+                            onAction = loadProjectAction()
                         },
                         new MenuItem {
                             text = "_Project info"
@@ -227,8 +221,8 @@ object BugPicker extends JFXApp {
         (classes, libs, sources)
     }
 
-    private def loadProjectAction(usePreferences: Boolean): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
-        val (preloadJars, preloadLibs, preloadSources) = if (usePreferences) loadPreferences() else (Seq.empty, Seq.empty, Seq.empty)
+    private def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒
+        val (preloadJars, preloadLibs, preloadSources) = loadPreferences()
         val dia = new LoadProjectDialog(preloadJars, preloadLibs, preloadSources)
         val results = dia.show(stage)
         val reportView = stage.scene().lookup("#reportView").asInstanceOf[jWebView]
