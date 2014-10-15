@@ -2,6 +2,8 @@ package org.opalj
 package bugpicker
 package dialogs
 
+import scalafx.Includes.eventClosureWrapperWithParam
+import scalafx.Includes.jfxMouseEvent2sfx
 import scalafx.Includes.jfxMultipleSelectionModel2sfx
 import scalafx.Includes.jfxObjectProperty2sfx
 import scalafx.Includes.jfxReadOnlyObjectProperty2sfx
@@ -11,6 +13,7 @@ import scalafx.scene.control.ListView
 import scalafx.scene.control.ListView.sfxListView2jfx
 import scalafx.scene.control.SelectionMode
 import scalafx.scene.control.SplitPane
+import scalafx.scene.input.MouseEvent
 import scalafx.scene.web.WebView
 import scalafx.scene.web.WebView.sfxWebView2jfx
 import scalafx.stage.Stage
@@ -30,8 +33,11 @@ object HelpBrowser extends Stage {
             val browser = new WebView
             browser.contextMenuEnabled = false
             list.selectionModel.delegate().selectedItemProperty().onChange { (observable, oldValue, newValue) ⇒
-                browser.engine.loadContent(newValue.content)
-                title = s"BugPicker Help - ${newValue.title}"
+                updateView(newValue, browser)
+            }
+            list.onMouseClicked = { e: MouseEvent ⇒
+                val selectedTopic = list.selectionModel.delegate().selectedItem()
+                updateView(selectedTopic, browser)
             }
             items ++= Seq(list, browser)
             dividerPositions = 0.3
@@ -40,6 +46,11 @@ object HelpBrowser extends Stage {
     }
 
     initStyle(StageStyle.DECORATED)
+
+    private def updateView(topic: HelpTopic, browser: WebView) {
+        browser.engine.loadContent(topic.content)
+        title = s"BugPicker Help - ${topic.title}"
+    }
 
     override def show() {
         centerOnScreen()
