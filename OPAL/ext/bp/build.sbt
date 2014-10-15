@@ -4,6 +4,8 @@ name := "BugPicker"
 
 version := "ALWAYS-SNAPSHOT"
 
+scalaVersion := "2.11.2"
+
 scalacOptions in (Compile, doc) := Seq("-deprecation", "-feature", "-unchecked")
 
 scalacOptions in (Compile, doc) ++= Opts.doc.title("OPAL - BugPicker")
