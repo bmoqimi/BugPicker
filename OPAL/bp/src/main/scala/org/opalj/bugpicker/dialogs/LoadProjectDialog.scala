@@ -241,6 +241,20 @@ class LoadProjectDialog(
 
                     content = Seq(
                         new Button {
+                            text = "Cle_ar"
+                            mnemonicParsing = true
+                            margin = buttonMargin
+                            minWidth = 80
+                            onAction = { e: ActionEvent ⇒
+                                jars.clear()
+                                jarListview.items().clear()
+                                libs.clear()
+                                libsListview.items().clear()
+                                sources.clear()
+                                sourceListview.items().clear()
+                            }
+                        },
+                        new Button {
                             text = "_Cancel"
                             mnemonicParsing = true
                             margin = buttonMargin
