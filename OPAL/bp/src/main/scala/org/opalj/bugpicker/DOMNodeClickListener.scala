@@ -25,6 +25,7 @@ import scalafx.stage.Modality
 import scalafx.stage.Stage
 import scalafx.stage.StageStyle
 import scala.collection.immutable.Stream
+import org.opalj.bugpicker.dialogs.DialogStage
 
 class DOMNodeClickListener(
         project: Project[URL],

@@ -1,19 +1,24 @@
 package org.opalj
 package bugpicker
+package dialogs
 
-import scalafx.Includes._
-import org.opalj.br.analyses.Project
 import java.io.File
-import scalafx.stage.Stage
 import java.net.URL
-import scalafx.scene.web.WebView
-import scalafx.scene.control.Button
-import scalafx.geometry.Insets
-import scalafx.scene.layout.HBox
-import scalafx.scene.layout.BorderPane
+
+import org.opalj.br.analyses.Project
+
+import scalafx.Includes.eventClosureWrapperWithParam
+import scalafx.Includes.jfxActionEvent2sfx
+import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.event.ActionEvent
+import scalafx.geometry.Insets
 import scalafx.geometry.Pos
 import scalafx.scene.Scene
+import scalafx.scene.control.Button
+import scalafx.scene.layout.BorderPane
+import scalafx.scene.layout.HBox
+import scalafx.scene.web.WebView
+import scalafx.stage.Stage
 
 object ProjectInfoDialog {
     def toUL(files: Seq[File]): String = files.map(_.getAbsolutePath).mkString("<ul><li>", "</li><li>", "</li></ul>")

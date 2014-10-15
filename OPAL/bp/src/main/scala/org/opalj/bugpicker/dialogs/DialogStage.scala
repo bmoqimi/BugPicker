@@ -1,22 +1,24 @@
 package org.opalj
 package bugpicker
+package dialogs
 
-import scalafx.Includes._
-import scalafx.stage.Stage
+import scalafx.Includes.eventClosureWrapperWithParam
+import scalafx.Includes.jfxActionEvent2sfx
+import scalafx.Includes.jfxKeyEvent2sfx
+import scalafx.Includes.observableList2ObservableBuffer
+import scalafx.event.ActionEvent
+import scalafx.geometry.Insets
+import scalafx.geometry.Pos
 import scalafx.scene.Scene
-import scalafx.scene.Node
-import scalafx.scene.Parent
-import scalafx.scene.input.KeyEvent
-import scalafx.scene.input.KeyCode
-import scalafx.stage.Modality
-import scalafx.stage.StageStyle
+import scalafx.scene.control.Button
 import scalafx.scene.control.Label
+import scalafx.scene.input.KeyCode
+import scalafx.scene.input.KeyEvent
 import scalafx.scene.layout.BorderPane
 import scalafx.scene.layout.HBox
-import scalafx.scene.control.Button
-import scalafx.geometry.Insets
-import scalafx.event.ActionEvent
-import scalafx.geometry.Pos
+import scalafx.stage.Modality
+import scalafx.stage.Stage
+import scalafx.stage.StageStyle
 import scalafx.stage.Window
 
 class DialogStage(owner: Window) extends Stage {

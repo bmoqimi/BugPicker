@@ -20,6 +20,7 @@ import scalafx.scene.web.WebView
 import scalafx.event.ActionEvent
 import scala.language.implicitConversions
 import scalafx.scene.Scene
+import org.opalj.bugpicker.dialogs.DialogStage
 
 object ProjectHelper {
     def setupProject(loadedFiles: (List[File], List[File], List[File]), parentStage: Stage): (Project[URL], Seq[File]) = {

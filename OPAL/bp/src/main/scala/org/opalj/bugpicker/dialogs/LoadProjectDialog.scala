@@ -1,29 +1,31 @@
 package org.opalj
 package bugpicker
+package dialogs
+
+import java.io.File
+
+import scala.collection.mutable.ListBuffer
+
+import org.opalj.bugpicker.BugPicker
 
 import scalafx.Includes._
-import scalafx.stage.Stage
-import scalafx.stage.Modality
-import scalafx.scene.Scene
-import scalafx.scene.control.ListView
-import scalafx.stage.StageStyle
-import scalafx.scene.layout.VBox
-import scalafx.scene.control.Label
-import scalafx.scene.control.Button
-import scalafx.scene.layout.HBox
 import scalafx.event.ActionEvent
-import scalafx.stage.FileChooser
-import scalafx.stage.DirectoryChooser
 import scalafx.geometry.Insets
-import scalafx.scene.layout.Priority
 import scalafx.geometry.Pos
-import scalafx.scene.control.Tooltip
+import scalafx.scene.Scene
+import scalafx.scene.control.Button
+import scalafx.scene.control.ListView
 import scalafx.scene.control.TitledPane
 import scalafx.scene.input.KeyCode
-import scalafx.scene.input.KeyCodeCombination
 import scalafx.scene.input.KeyEvent
-import scala.collection.mutable.ListBuffer
-import java.io.File
+import scalafx.scene.layout.HBox
+import scalafx.scene.layout.Priority
+import scalafx.scene.layout.VBox
+import scalafx.stage.DirectoryChooser
+import scalafx.stage.FileChooser
+import scalafx.stage.Modality
+import scalafx.stage.Stage
+import scalafx.stage.StageStyle
 
 class LoadProjectDialog(
         preloadJars: Seq[File] = Seq.empty,

@@ -1,14 +1,20 @@
 package org.opalj
 package bugpicker
+package dialogs
 
-import scalafx.Includes._
-import scalafx.stage.Stage
+import scalafx.Includes.jfxMultipleSelectionModel2sfx
+import scalafx.Includes.jfxObjectProperty2sfx
+import scalafx.Includes.jfxReadOnlyObjectProperty2sfx
+import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.scene.Scene
-import scalafx.stage.StageStyle
-import scalafx.scene.control.SplitPane
 import scalafx.scene.control.ListView
-import scalafx.scene.web.WebView
+import scalafx.scene.control.ListView.sfxListView2jfx
 import scalafx.scene.control.SelectionMode
+import scalafx.scene.control.SplitPane
+import scalafx.scene.web.WebView
+import scalafx.scene.web.WebView.sfxWebView2jfx
+import scalafx.stage.Stage
+import scalafx.stage.StageStyle
 
 object HelpBrowser extends Stage {
     title = "BugPicker Help"

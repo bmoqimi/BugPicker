@@ -1,9 +1,11 @@
 package org.opalj
 package bugpicker
+package dialogs
 
-import scalafx.Includes._
+import scalafx.Includes.eventClosureWrapperWithParam
+import scalafx.Includes.jfxActionEvent2sfx
+import scalafx.Includes.observableList2ObservableBuffer
 import scalafx.event.ActionEvent
-import scalafx.stage.WindowEvent
 import scalafx.geometry.Insets
 import scalafx.geometry.Pos
 import scalafx.scene.Scene
@@ -13,7 +15,6 @@ import scalafx.scene.layout.BorderPane
 import scalafx.scene.layout.HBox
 import scalafx.scene.layout.VBox
 import scalafx.stage.Stage
-import scalafx.scene.control.TextArea
 
 class AboutDialog(owner: Stage) extends DialogStage(owner) {
     self ⇒

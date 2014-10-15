@@ -55,6 +55,11 @@ import scalafx.scene.control.ProgressBar
 import scalafx.scene.layout.Priority
 import scalafx.scene.layout.HBox
 import java.util.prefs.Preferences
+import org.opalj.bugpicker.dialogs.AboutDialog
+import org.opalj.bugpicker.dialogs.DialogStage
+import org.opalj.bugpicker.dialogs.ProjectInfoDialog
+import org.opalj.bugpicker.dialogs.LoadProjectDialog
+import org.opalj.bugpicker.dialogs.HelpBrowser
 
 object BugPicker extends JFXApp {
     final val PREFERENCES_KEY = "/org/opalj/bugpicker"
