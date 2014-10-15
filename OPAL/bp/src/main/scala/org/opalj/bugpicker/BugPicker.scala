@@ -221,7 +221,7 @@ object BugPicker extends JFXApp {
         val classes = prefAsFiles(PREFERENCES_KEY_CLASSES)
         val libs = prefAsFiles(PREFERENCES_KEY_LIBS)
         val sources = prefAsFiles(PREFERENCES_KEY_SOURCES)
-        Some(LoadedFiles(classes, libs, sources))
+        Some(LoadedFiles(projectFiles = classes, projectSources = sources, libraries = libs))
     }
 
     private def loadProjectAction(): ActionEvent ⇒ Unit = { e: ActionEvent ⇒

@@ -150,7 +150,7 @@ case class DeadCode(
             }
 
         val pcNode =
-            <span class="tooltip" data-class={ classFile.fqn } data-method={ methodIndex.toString } data-pc={ ctiPC.toString } data-line={ line.map(_.toString).getOrElse("") } data-load="bytecode">
+            <span class="tooltip" data-class={ classFile.fqn } data-method={ methodIndex.toString } data-pc={ ctiPC.toString } data-line={ line.map(_.toString).getOrElse("") } data-show="bytecode">
                 { ctiPC }
                 <span>{ iNode }</span>
             </span>
@@ -172,7 +172,7 @@ case class DeadCode(
                     { pcNode }{
                         Text("/ ") ++
                             line.map(ln ⇒
-                                <span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ ln.toString } data-pc={ pc.toString } data-load="sourcecode">{ ln }</span>
+                                <span data-class={ classFile.fqn } data-method={ methodIndex.toString } data-line={ ln.toString } data-pc={ pc.toString } data-show="sourcecode">{ ln }</span>
                             ).getOrElse(Text("N/A"))
                     }
                 </td>

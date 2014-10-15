@@ -77,34 +77,32 @@ class DOMNodeClickListener(
         val methodOption = getAttribute("data-method")
         val pcOption = getAttribute("data-pc")
         val lineOption = getAttribute("data-line")
-        val (loadBytecode, loadSource) = getAttribute("data-load") match {
+        val (showBytecode, showSource) = getAttribute("data-show") match {
             case Some("bytecode")   ⇒ (true, false)
             case Some("sourcecode") ⇒ (false, true)
             case _                  ⇒ (true, sources.nonEmpty)
         }
 
         var noSourceFound = false
-        if (loadSource) {
-            val sourceFile = findSourceFile(sourceType, lineOption)
-            if (sourceFile.isDefined) {
-                sourceWebview.engine.loadContent(sourceFile.get.toXHTML.toString)
-                new JumpToProblemListener(webview = sourceWebview, methodOption = methodOption, pcOption = None, lineOption = lineOption)
-                if (!loadBytecode) focus(sourceWebview)
-            } else {
-                noSourceFound = true
-                val msg = s"Could not find source code for type $className.\nShowing bytecode instead."
-                DialogStage.showMessage("Info", msg, sourceWebview.scene().window())
-                sourceWebview.engine.loadContent("")
-            }
+
+        val sourceFile = findSourceFile(sourceType, lineOption)
+        if (!sourceFile.isDefined && showSource) {
+            noSourceFound = true
+            val msg = s"Could not find source code for type $className.\nShowing bytecode instead."
+            DialogStage.showMessage("Info", msg, sourceWebview.scene().window())
+            sourceWebview.engine.loadContent("")
+        } else if (sourceFile.isDefined) {
+            sourceWebview.engine.loadContent(sourceFile.get.toXHTML.toString)
+            new JumpToProblemListener(webview = sourceWebview, methodOption = methodOption, pcOption = None, lineOption = lineOption)
+            focus(sourceWebview)
         }
-        if (loadBytecode || noSourceFound) {
-            val classFile = decompileClassFile(project, sourceType)
-            if (classFile.isDefined)
-                bytecodeWebview.engine.loadContent(classFile.get.toXHTML.toString)
-            else
-                bytecodeWebview.engine.loadContent(Messages.NO_BYTECODE_FOUND)
-            new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
-            if (!loadSource || noSourceFound) focus(bytecodeWebview)
-        }
+
+        val classFile = decompileClassFile(project, sourceType)
+        if (classFile.isDefined)
+            bytecodeWebview.engine.loadContent(classFile.get.toXHTML.toString)
+        else
+            bytecodeWebview.engine.loadContent(Messages.NO_BYTECODE_FOUND)
+        new JumpToProblemListener(webview = bytecodeWebview, methodOption = methodOption, pcOption = pcOption, lineOption = None)
+        if (noSourceFound || showBytecode && !showSource) focus(bytecodeWebview)
     }
 }
