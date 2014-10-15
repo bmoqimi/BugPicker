@@ -1,11 +1,13 @@
 package org.opalj
 package bugpicker
+package codeview
+
+import scala.io.Source
 
 import javafx.beans.value.ChangeListener
-import javafx.concurrent.Worker.State
 import javafx.beans.value.ObservableValue
+import javafx.concurrent.Worker.State
 import scalafx.scene.web.WebView
-import scala.io.Source
 
 class JumpToProblemListener(
         webview: WebView,
@@ -43,5 +45,6 @@ class JumpToProblemListener(
 }
 
 object JumpToProblemListener {
-    final lazy val JUMP_JS: String = Source.fromURL(getClass.getResource("jump-to-problem.js")).mkString
+    final val JUMP_JS_URL: String = "/org/opalj/bugpicker/codeview/jump-to-problem.js"
+    final lazy val JUMP_JS: String = Source.fromURL(getClass.getResource(JUMP_JS_URL)).mkString
 }

@@ -1,31 +1,18 @@
 package org.opalj
 package bugpicker
+package codeview
 
 import java.io.File
 import java.io.FilenameFilter
 import java.net.URL
-import scala.language.reflectiveCalls
 import org.opalj.br.ObjectType
 import org.opalj.br.analyses.Project
+import org.opalj.bugpicker.dialogs.DialogStage
 import org.opalj.da.ClassFile
 import org.w3c.dom.Node
 import org.w3c.dom.events.EventListener
 import scalafx.Includes._
-import scalafx.beans.property.ObjectProperty
-import scalafx.event.ActionEvent
-import scalafx.geometry.Insets
-import scalafx.geometry.Pos
-import scalafx.geometry.Pos.sfxEnum2jfx
-import scalafx.scene.Scene
-import scalafx.scene.control.Button
-import scalafx.scene.control.Label
-import scalafx.scene.layout.BorderPane
 import scalafx.scene.web.WebView
-import scalafx.stage.Modality
-import scalafx.stage.Stage
-import scalafx.stage.StageStyle
-import scala.collection.immutable.Stream
-import org.opalj.bugpicker.dialogs.DialogStage
 
 class DOMNodeClickListener(
         project: Project[URL],

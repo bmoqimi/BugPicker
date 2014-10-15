@@ -1,13 +1,16 @@
 package org.opalj
 package bugpicker
+package codeview
 
+import java.io.File
 import java.net.URL
+
 import org.opalj.br.analyses.Project
+
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.concurrent.Worker.State
 import scalafx.scene.web.WebView
-import java.io.File
 
 /**
  * Adds onClick listeners on `td` elements in `resultWebview`'s document (once it has finished loading).

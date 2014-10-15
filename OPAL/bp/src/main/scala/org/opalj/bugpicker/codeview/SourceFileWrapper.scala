@@ -1,11 +1,10 @@
 package org.opalj
 package bugpicker
+package codeview
 
 import java.io.File
 import scala.io.Source
 import scala.xml.Unparsed
-import scala.xml.NodeSeq
-import scala.xml.Text
 
 case class SourceFileWrapper(sourceFile: File, highlightLines: String) {
     private val source = Source.fromFile(sourceFile).mkString
@@ -21,7 +20,7 @@ case class SourceFileWrapper(sourceFile: File, highlightLines: String) {
         <html>
             <head>
                 <title>{ sourceFile.getName }</title>
-                <style type="text/css">{ Unparsed(SourceFileWrapper.PRISM_JS_CSS) }</style>
+                <style type="text/css">{ Unparsed(SourceFileWrapper.PRISM_CSS) }</style>
             </head>
             <body>
                 <pre class="line-numbers" data-line={ highlightLines }><code class={ language }>{ source }</code></pre>
@@ -32,7 +31,10 @@ case class SourceFileWrapper(sourceFile: File, highlightLines: String) {
 }
 
 object SourceFileWrapper {
-    final lazy val PRISM_JS: String = Source.fromURL(getClass.getResource("prism.js")).mkString
-    final lazy val PRISM_JS_CSS: String = Source.fromURL(getClass.getResource("prism.css")).mkString
-    final lazy val ADD_LINE_ANCHORS: String = Source.fromURL(getClass.getResource("add-line-anchors.js")).mkString
+    final val PRISM_JS_URL: String = "/org/opalj/bugpicker/codeview/prism.js"
+    final lazy val PRISM_JS: String = Source.fromURL(getClass.getResource(PRISM_JS_URL)).mkString
+    final val PRISM_CSS_URL: String = "/org/opalj/bugpicker/codeview/prism.css"
+    final lazy val PRISM_CSS: String = Source.fromURL(getClass.getResource(PRISM_CSS_URL)).mkString
+    final val ADD_LINE_ANCHORS_URL: String = "/org/opalj/bugpicker/codeview/add-line-anchors.js"
+    final lazy val ADD_LINE_ANCHORS: String = Source.fromURL(getClass.getResource(ADD_LINE_ANCHORS_URL)).mkString
 }
