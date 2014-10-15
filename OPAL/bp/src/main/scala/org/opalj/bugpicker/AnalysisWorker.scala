@@ -11,6 +11,8 @@ import org.opalj.ai.debug.XHTML
 import scala.io.Source
 import org.opalj.br.analyses.ProgressManagement
 import java.net.URL
+import org.opalj.bugpicker.analysis.BugReport
+import org.opalj.bugpicker.analysis.DeadCodeAnalysis
 
 class AnalysisWorker(
     doc: ObjectProperty[xmlNode],

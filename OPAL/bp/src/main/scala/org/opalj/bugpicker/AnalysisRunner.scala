@@ -38,6 +38,7 @@ import scalafx.stage.Stage
 import scalafx.stage.StageStyle
 import scalafx.concurrent.Service
 import scalafx.beans.property.ObjectProperty
+import org.opalj.bugpicker.analysis.DeadCodeAnalysis
 
 object AnalysisRunner extends DeadCodeAnalysis {
     def runAnalysis(stage: Stage, project: Project[URL], sources: Seq[File]) {

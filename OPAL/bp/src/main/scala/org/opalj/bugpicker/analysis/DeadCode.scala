@@ -28,22 +28,21 @@
  */
 package org.opalj
 package bugpicker
+package analysis
 
-import scala.xml.Node
-import scala.xml.UnprefixedAttribute
 import scala.Console.BLUE
 import scala.Console.BOLD
 import scala.Console.GREEN
 import scala.Console.RESET
-import scala.collection.SortedMap
-import org.opalj.br.{ ClassFile, Method }
-import org.opalj.ai.debug.XHTML
-import org.opalj.br.instructions.Instruction
-import org.opalj.br.instructions.ConditionalBranchInstruction
-import org.opalj.br.instructions.SimpleConditionalBranchInstruction
-import org.opalj.br.instructions.CompoundConditionalBranchInstruction
-import scala.xml.Unparsed
+import scala.xml.Node
 import scala.xml.Text
+import scala.xml.UnprefixedAttribute
+
+import org.opalj.ai.debug.XHTML
+import org.opalj.br.ClassFile
+import org.opalj.br.Method
+import org.opalj.br.instructions.CompoundConditionalBranchInstruction
+import org.opalj.br.instructions.SimpleConditionalBranchInstruction
 
 case class DeadCode(
         classFile: ClassFile,
@@ -192,7 +191,7 @@ case class DeadCode(
     }
 
     override def toString = {
-        import Console._
+        import scala.Console._
         val declaringClassOfMethod = classFile.thisType.toJava
 
         "Dead code in "+BOLD + BLUE +

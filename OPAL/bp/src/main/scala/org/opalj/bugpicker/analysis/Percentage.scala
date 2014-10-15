@@ -28,6 +28,7 @@
  */
 package org.opalj
 package bugpicker
+package analysis
 
 case class Percentage(val value: Int) extends AnyVal {
 
