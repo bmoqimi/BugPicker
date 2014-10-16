@@ -58,6 +58,16 @@ import org.opalj.util.PerformanceEvaluation.time
 import org.opalj.br.instructions.INEG
 import org.opalj.br.instructions.LNEG
 
+/**
+ * A static analysis that analyzes the data-flow to detect useless computations and 
+ * dead code. 
+ * 
+ * ==Precision==
+ * The analysis is complete; i.e., every reported case is a true case. However, given
+ * that we analyze Java bytecode, some findings may be the result of the compilation
+ * scheme used for compiling the source code and, hence, cannot be resolved at the
+ * sourcecode level.  
+ */
 class DeadCodeAnalysis extends Analysis[URL, (Long, Iterable[BugReport])] {
 
     override def title: String = "Dead/Useless/Buggy Code Identification"
